@@ -1,0 +1,2 @@
+[assembly: XmlnsDefinition("http://schemas.microsoft.com/dotnet/maui/global", "PersonalPlannerApp")]
+[assembly: XmlnsDefinition("http://schemas.microsoft.com/dotnet/maui/global", "PersonalPlannerApp.Pages")]
