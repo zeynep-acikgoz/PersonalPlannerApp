@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace PersonalPlannerApp.Views;
 
-public partial class AsistantPage : ContentPage
+public partial class AssistantPage : ContentPage
 {
-    public AsistantPage()
+    public AssistantPage()
     {
         InitializeComponent();
     }

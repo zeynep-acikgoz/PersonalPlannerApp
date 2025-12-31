@@ -3,12 +3,27 @@
     x:Class="PersonalPlannerApp.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:local="clr-namespace:PersonalPlannerApp"
-    Title="PersonalPlannerApp">
+    xmlns:views="clr-namespace:PersonalPlannerApp.Views"
+    Title="PersonalPlannerApp"
+    
+    
+    
+    Shell.BackgroundColor="{AppThemeBinding Light=White, Dark=Black}"
+    Shell.ForegroundColor="{AppThemeBinding Light=Black, Dark=White}"
+    Shell.TitleColor="{AppThemeBinding Light=Black, Dark=White}"
+    
+    
+    
+    Shell.TabBarBackgroundColor="{AppThemeBinding Light=#f0f0f0, Dark=#1c1c1e}"
+    Shell.TabBarTitleColor="{AppThemeBinding Light=Black, Dark=White}"
+    Shell.TabBarUnselectedColor="{AppThemeBinding Light=Gray, Dark=Gray}">
 
-    <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+    <TabBar>
+        <ShellContent Title="Home" ContentTemplate="{DataTemplate views:HomePage}" Route="HomePage" />
+        <ShellContent Title="To Do" ContentTemplate="{DataTemplate views:ToDoPage}" Route="ToDoPage" />
+        <ShellContent Title="Plan" ContentTemplate="{DataTemplate views:PlanPage}" Route="PlanPage" />
+        <ShellContent Title="Assistant" ContentTemplate="{DataTemplate views:AssistantPage}" Route="AssistantPage" />
+        <ShellContent Title="Mind" ContentTemplate="{DataTemplate views:MindPage}" Route="MindPage" />
+    </TabBar>
 
 </Shell>
