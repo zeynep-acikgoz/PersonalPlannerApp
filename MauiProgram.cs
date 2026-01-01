@@ -19,6 +19,11 @@ public static class MauiProgram
         builder.Logging.AddDebug();
 #endif
 
+        // Veritabanı servisini ve Sayfaları sisteme tanıtıyoruz
+        builder.Services.AddSingleton<LocalDbService>();
+
+        builder.Services.AddTransient<PersonalPlannerApp.ViewModels.ToDoViewModel>();
+        builder.Services.AddTransient<PersonalPlannerApp.Views.ToDoPage>();
         return builder.Build();
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using Microsoft.Maui.Controls;
+using Microsoft.Maui.ApplicationModel; // Tema yönetimi için gerekli
 
 namespace PersonalPlannerApp.Views;
 
@@ -12,13 +13,36 @@ public partial class HomePage : ContentPage
         
         UpdateDate();
         UpdateGreeting();
-        CheckBriefVisibility(); 
+        CheckBriefVisibility();
+        
+        // Uygulama ilk açıldığında, Switch'in konumunu mevcut temaya göre ayarla
+        // Eğer şu an Dark mod ise, Switch açık (True) olsun.
+        if (Application.Current.RequestedTheme == AppTheme.Dark)
+        {
+            ThemeSwitch.IsToggled = true;
+        }
     }
 
-  
+    // Kullanıcı Switch butonuna bastığında bu çalışır
+    private void OnThemeSwitchToggled(object sender, ToggledEventArgs e)
+    {
+        // Switch açık mı (True) kapalı mı (False)?
+        bool isDarkMode = e.Value;
+
+        if (isDarkMode)
+        {
+            // Uygulamayı KARANLIK moda zorla
+            Application.Current.UserAppTheme = AppTheme.Dark;
+        }
+        else
+        {
+            // Uygulamayı AYDINLIK moda zorla
+            Application.Current.UserAppTheme = AppTheme.Light;
+        }
+    }
+
     private void OnTimeChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        
         if (e.PropertyName == "Time")
         {
             CheckBriefVisibility();
@@ -27,26 +51,17 @@ public partial class HomePage : ContentPage
 
     private void CheckBriefVisibility()
     {
-        
         TimeSpan currentTime = DateTime.Now.TimeOfDay;
-
-  
         TimeSpan eveningThreshold = PickerEvening.Time;
 
-      
         if (currentTime >= eveningThreshold)
-        {
-            FrameEvening.IsVisible = true; 
-        }
+            FrameEvening.IsVisible = true;
         else
-        {
-            FrameEvening.IsVisible = false; 
-        }
+            FrameEvening.IsVisible = false;
     }
 
     private void UpdateGreeting()
     {
-     
         var currentHour = DateTime.Now.Hour;
         string greetingText = "";
 
