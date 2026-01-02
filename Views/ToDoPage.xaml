@@ -15,7 +15,20 @@
                TextColor="{AppThemeBinding Light=Black, Dark=White}"
                Grid.Row="0" />
 
-        <Frame Grid.Row="1" CornerRadius="15" Padding="15" BorderColor="Transparent" BackgroundColor="{AppThemeBinding Light=White, Dark=#252525}">
+        <Frame Grid.Row="1" CornerRadius="15" Padding="15" 
+               BackgroundColor="{AppThemeBinding Light=White, Dark=#252525}">
+            
+            <Frame.BorderColor>Transparent</Frame.BorderColor>
+
+            <Frame.Triggers>
+                <DataTrigger TargetType="Frame" Binding="{Binding IsEditing}" Value="True">
+                    <Setter Property="BorderColor" Value="OrangeRed" />
+                </DataTrigger>
+                <DataTrigger TargetType="Frame" Binding="{Binding IsEditing}" Value="False">
+                    <Setter Property="BorderColor" Value="Transparent" />
+                </DataTrigger>
+            </Frame.Triggers>
+
             <Grid RowDefinitions="Auto, Auto" RowSpacing="10">
                 
                 <Grid ColumnDefinitions="*, Auto" ColumnSpacing="10" Grid.Row="0">
@@ -23,7 +36,8 @@
                            PlaceholderColor="Gray" TextColor="{AppThemeBinding Light=Black, Dark=White}"
                            FontSize="16" Grid.Column="0" />
                     
-                    <Button Text="+" Command="{Binding AddTaskCommand}"
+                    <Button Text="{Binding StateButtonText}" 
+                            Command="{Binding AddTaskCommand}"
                             WidthRequest="50" HeightRequest="50" CornerRadius="25"
                             BackgroundColor="{AppThemeBinding Light=Black, Dark=#52D1DC}"
                             TextColor="{AppThemeBinding Light=White, Dark=Black}"
@@ -71,6 +85,26 @@
                 <LinearItemsLayout Orientation="Vertical" ItemSpacing="10" />
             </CollectionView.ItemsLayout>
 
+            <CollectionView.EmptyView>
+                <ContentView>
+                    <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="20" Margin="0,50,0,0">
+                        <Label Text="🤖" 
+                               FontSize="80" 
+                               HorizontalOptions="Center" />
+                        
+                        <Label Text="There is nothing to do." 
+                               FontSize="18" 
+                               TextColor="Gray" 
+                               FontAttributes="Bold"
+                               HorizontalOptions="Center" />
+                        
+                        <Label Text="Enjoy the moment or add a new to-do above. ☕" 
+                               FontSize="16" 
+                               TextColor="Gray" 
+                               HorizontalOptions="Center" />
+                    </VerticalStackLayout>
+                </ContentView>
+            </CollectionView.EmptyView>
             <CollectionView.GroupHeaderTemplate>
                 <DataTemplate>
                     <Grid Padding="0,15,0,5" ColumnDefinitions="*, Auto">
@@ -85,34 +119,53 @@
                 </DataTemplate>
             </CollectionView.GroupHeaderTemplate>
 
-            <CollectionView.ItemTemplate>
+           <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <Frame CornerRadius="12" Padding="10" BorderColor="Transparent" BackgroundColor="{AppThemeBinding Light=White, Dark=#1E1E1E}">
-                        <Grid ColumnDefinitions="5, *, Auto, Auto" ColumnSpacing="10">
-                            <BoxView Color="{Binding CategoryColor}" WidthRequest="5" CornerRadius="2" VerticalOptions="Fill" Grid.Column="0"/>
-                            
-                            <StackLayout Grid.Column="1" VerticalOptions="Center">
-                                <Label Text="{Binding Title}" FontSize="16" TextColor="{AppThemeBinding Light=Black, Dark=White}">
-                                    <Label.Triggers>
-                                        <DataTrigger TargetType="Label" Binding="{Binding IsCompleted}" Value="True">
-                                            <Setter Property="TextDecorations" Value="Strikethrough" />
-                                            <Setter Property="TextColor" Value="Gray" />
-                                        </DataTrigger>
-                                    </Label.Triggers>
-                                </Label>
-                                <Label Text="{Binding DueDate, StringFormat='Due: {0:dd MMM}'}" FontSize="12" TextColor="Gray"/>
-                            </StackLayout>
-                            
-                            <CheckBox IsChecked="{Binding IsCompleted}" 
-                                      Grid.Column="2" 
-                                      Color="{AppThemeBinding Light=Black, Dark=White}"
-                                      CheckedChanged="CheckBox_CheckedChanged"/>
+                    <SwipeView>
 
-                            <Button Text="🗑" Grid.Column="3" FontSize="18" BackgroundColor="Transparent" TextColor="#FF3B30" WidthRequest="40" Padding="0"
-                                    Command="{Binding Source={x:Reference TheToDoPage}, Path=BindingContext.DeleteTaskCommand}"
-                                    CommandParameter="{Binding .}" />
+                        <SwipeView.RightItems>
+                            <SwipeItems Mode="Reveal">
+                                <SwipeItem Text="Delete" 
+                                           BackgroundColor="#FF3B30" 
+                                           Command="{Binding Source={x:Reference TheToDoPage}, Path=BindingContext.DeleteTaskCommand}"
+                                           CommandParameter="{Binding .}"/>
+                            </SwipeItems>
+                        </SwipeView.RightItems>
+
+                        <Grid BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#121212}"> 
+                            <Frame CornerRadius="12" Padding="10" BorderColor="Transparent" BackgroundColor="{AppThemeBinding Light=White, Dark=#1E1E1E}" Margin="0,0,0,0">
+                                
+                                <Frame.GestureRecognizers>
+                                    <TapGestureRecognizer 
+                                        Command="{Binding Source={x:Reference TheToDoPage}, Path=BindingContext.EditTaskCommand}"
+                                        CommandParameter="{Binding .}" />
+                                </Frame.GestureRecognizers>
+                                
+                                <Grid ColumnDefinitions="5, *, Auto" ColumnSpacing="10">
+                                    
+                                    <BoxView Color="{Binding CategoryColor}" WidthRequest="5" CornerRadius="2" VerticalOptions="Fill" Grid.Column="0"/>
+                                    
+                                    <StackLayout Grid.Column="1" VerticalOptions="Center">
+                                        <Label Text="{Binding Title}" FontSize="16" TextColor="{AppThemeBinding Light=Black, Dark=White}">
+                                            <Label.Triggers>
+                                                <DataTrigger TargetType="Label" Binding="{Binding IsCompleted}" Value="True">
+                                                    <Setter Property="TextDecorations" Value="Strikethrough" />
+                                                    <Setter Property="TextColor" Value="Gray" />
+                                                </DataTrigger>
+                                            </Label.Triggers>
+                                        </Label>
+                                        <Label Text="{Binding DueDate, StringFormat='Due: {0:dd MMM}'}" FontSize="12" TextColor="Gray"/>
+                                    </StackLayout>
+                                    
+                                    <CheckBox IsChecked="{Binding IsCompleted}" 
+                                              Grid.Column="2" 
+                                              Color="{AppThemeBinding Light=Black, Dark=White}"
+                                              CheckedChanged="CheckBox_CheckedChanged"/>
+                                </Grid>
+                            </Frame>
                         </Grid>
-                    </Frame>
+                        
+                    </SwipeView>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
             

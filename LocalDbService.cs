@@ -14,31 +14,28 @@ public class LocalDbService
         if (_connection != null)
             return;
 
-        // Bağlantıyı kur
+        // Bağlantı kurulumu
         _connection = new SQLiteAsyncConnection(Constants.DatabasePath, Constants.Flags);
 
-        // Tabloları oluştur (Eğer yoksa)
-        // Şimdilik sadece ToDoItem tablosunu oluşturuyoruz
+        
         await _connection.CreateTableAsync<ToDoItem>();
+        await _connection.CreateTableAsync<PlannerItem>(); 
     }
 
-    // --- TO DO İŞLEMLERİ ---
-
-    // 1. Tüm Görevleri Getir
+    // -------------- TO DO
+    
     public async Task<List<ToDoItem>> GetTasksAsync()
     {
         await Init();
         return await _connection.Table<ToDoItem>().ToListAsync();
     }
 
-    // 2. Tek Bir Görevi Getir (ID ile)
     public async Task<ToDoItem> GetTaskByIdAsync(int id)
     {
         await Init();
         return await _connection.Table<ToDoItem>().Where(i => i.Id == id).FirstOrDefaultAsync();
     }
 
-    // 3. Ekle veya Güncelle (Varsa güncelle, yoksa ekle)
     public async Task SaveTaskAsync(ToDoItem item)
     {
         await Init();
@@ -48,10 +45,42 @@ public class LocalDbService
             await _connection.InsertAsync(item);
     }
 
-    // 4. Sil
     public async Task DeleteTaskAsync(ToDoItem item)
     {
         await Init();
         await _connection.DeleteAsync(item);
     }
+    
+    
+    
+    // --------------- PLANNER 
+
+    public async Task<List<PlannerItem>> GetPlannerItemsForDateAsync(DateTime date)
+    {
+        await Init();
+        
+        
+        var startOfDay = date.Date;
+        var endOfDay = date.Date.AddDays(1).AddTicks(-1);
+
+        return await _connection.Table<PlannerItem>()
+            .Where(i => i.Date >= startOfDay && i.Date <= endOfDay)
+            .ToListAsync();
+    }
+
+    public async Task SavePlannerItemAsync(PlannerItem item)
+    {
+        await Init();
+        if (item.Id != 0)
+            await _connection.UpdateAsync(item);
+        else
+            await _connection.InsertAsync(item);
+    }
+
+    public async Task DeletePlannerItemAsync(PlannerItem item)
+    {
+        await Init();
+        await _connection.DeleteAsync(item);
+    }
+    
 }

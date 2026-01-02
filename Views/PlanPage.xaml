@@ -1,9 +1,229 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="PersonalPlannerApp.Views.PlanPage">
-    <ContentPage.Content>
+             xmlns:vm="clr-namespace:PersonalPlannerApp.ViewModels"
+             x:Class="PersonalPlannerApp.Views.PlanPage"
+             x:Name="ThePlanPage"
+             Title="Weekly Plan"
+             BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#121212}">
+
+    <Grid RowDefinitions="Auto, Auto, *" Padding="0" RowSpacing="10">
+
+        <CollectionView Grid.Row="0" 
+                        ItemsSource="{Binding CalendarDays}"
+                        HeightRequest="90"
+                        SelectionMode="None"
+                        HorizontalScrollBarVisibility="Never">
+            
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout Orientation="Horizontal" ItemSpacing="10"/>
+            </CollectionView.ItemsLayout>
+            
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Frame HeightRequest="80" WidthRequest="60" CornerRadius="30" 
+                           Padding="0" HasShadow="False"
+                           BackgroundColor="{Binding BackgroundColor}"
+                           BorderColor="Transparent"
+                           Margin="5,10">
+                        
+                        <VerticalStackLayout VerticalOptions="Center" Spacing="2">
+                            <Label Text="{Binding DayName}" 
+                                   TextColor="{Binding TextColor}" 
+                                   HorizontalOptions="Center" FontSize="12"/>
+                            <Label Text="{Binding DayNumber}" 
+                                   TextColor="{Binding TextColor}" 
+                                   HorizontalOptions="Center" FontSize="20" FontAttributes="Bold"/>
+                        </VerticalStackLayout>
+
+                        <Frame.GestureRecognizers>
+                            <TapGestureRecognizer 
+                                Command="{Binding Source={x:Reference ThePlanPage}, Path=BindingContext.SelectDateCommand}"
+                                CommandParameter="{Binding .}"/>
+                        </Frame.GestureRecognizers>
+                    </Frame>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <Label Grid.Row="1" 
+               Text="{Binding TimelineTitle}" 
+               FontSize="18" FontAttributes="Bold" Margin="20,0"
+               TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
+
+        <CollectionView Grid.Row="2" 
+                        ItemsSource="{Binding PlannerItems}"
+                        SelectionMode="None"
+                        Margin="20,0">
+            
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout Orientation="Vertical" ItemSpacing="15"/>
+            </CollectionView.ItemsLayout>
+
+            <CollectionView.EmptyView>
+                <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="10" Margin="0,50,0,0">
+                    <Label Text="📅" FontSize="50" HorizontalOptions="Center"/>
+                    <Label Text="Bugün için plan yok." TextColor="Gray" HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Frame CornerRadius="15" Padding="0" BorderColor="Transparent" 
+                           BackgroundColor="{AppThemeBinding Light=White, Dark=#1E1E1E}">
+                        
+                        <Frame.Triggers>
+                            <DataTrigger TargetType="Frame" Binding="{Binding IsCompleted}" Value="True">
+                                <Setter Property="Opacity" Value="0.6" />
+                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=#E0E0E0, Dark=#333333}" />
+                            </DataTrigger>
+                        </Frame.Triggers>
+
+                        <Grid ColumnDefinitions="80, *, Auto, Auto, Auto" RowDefinitions="Auto">
+                            
+                            <BoxView Color="#E3F2FD" Grid.Column="0"/> 
+                            <VerticalStackLayout Grid.Column="0" VerticalOptions="Center" Spacing="2">
+                                <Label Text="{Binding StartTime, StringFormat='{0:hh\\:mm}'}" 
+                                       TextColor="#1565C0" FontAttributes="Bold" HorizontalOptions="Center"/>
+                                <Label Text="|" TextColor="#90CAF9" HorizontalOptions="Center" FontSize="10"/>
+                                <Label Text="{Binding EndTime, StringFormat='{0:hh\\:mm}'}" 
+                                       TextColor="#1565C0" FontAttributes="Bold" HorizontalOptions="Center"/>
+                            </VerticalStackLayout>
+
+                            <StackLayout Grid.Column="1" VerticalOptions="Center" Padding="10">
+                                <Label Text="{Binding Title}" FontSize="16" FontAttributes="Bold" TextColor="{AppThemeBinding Light=Black, Dark=White}">
+                                    <Label.Triggers>
+                                        <DataTrigger TargetType="Label" Binding="{Binding IsCompleted}" Value="True">
+                                            <Setter Property="TextDecorations" Value="Strikethrough"/>
+                                            <Setter Property="TextColor" Value="Gray"/>
+                                        </DataTrigger>
+                                    </Label.Triggers>
+                                </Label>
+                            </StackLayout>
+
+                            <CheckBox Grid.Column="2" IsChecked="{Binding IsCompleted, Mode=TwoWay}" 
+                                      Color="{AppThemeBinding Light=Black, Dark=#52D1DC}"
+                                      VerticalOptions="Center"/>
+
+                            <ImageButton Grid.Column="3"
+                                         BackgroundColor="Transparent"
+                                         HeightRequest="40" WidthRequest="40"
+                                         VerticalOptions="Center"
+                                         Margin="0,0,5,0"
+                                         Command="{Binding Source={x:Reference ThePlanPage}, Path=BindingContext.EditPlanCommand}"
+                                         CommandParameter="{Binding .}">
+                                <ImageButton.Source>
+                                    <FontImageSource Glyph="✏️" Color="Orange" Size="18" FontFamily="OpenSansRegular"/>
+                                </ImageButton.Source>
+                            </ImageButton>
+
+                            <ImageButton Grid.Column="4"
+                                         BackgroundColor="Transparent"
+                                         HeightRequest="40" WidthRequest="40"
+                                         VerticalOptions="Center"
+                                         Margin="0,0,10,0"
+                                         Command="{Binding Source={x:Reference ThePlanPage}, Path=BindingContext.DeletePlanCommand}"
+                                         CommandParameter="{Binding .}">
+                                <ImageButton.Source>
+                                    <FontImageSource Glyph="🗑" Color="#FF3B30" Size="20" FontFamily="OpenSansRegular"/>
+                                </ImageButton.Source>
+                            </ImageButton>
+
+                        </Grid>
+                    </Frame>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
         
-    </ContentPage.Content>
+        <Button Grid.Row="2" Text="+" 
+                Command="{Binding OpenAddPopupCommand}"
+                FontSize="30" TextColor="White"
+                BackgroundColor="{AppThemeBinding Light=Black, Dark=#52D1DC}"
+                WidthRequest="60" HeightRequest="60" CornerRadius="30"
+                HorizontalOptions="End" VerticalOptions="End"
+                Margin="20">
+            <Button.Shadow>
+                <Shadow Brush="Black" Offset="2,2" Opacity="0.5"/>
+            </Button.Shadow>
+        </Button>
+
+        <Grid Grid.Row="0" Grid.RowSpan="3" 
+              BackgroundColor="#80000000"
+              IsVisible="{Binding IsPopupVisible}"
+              ZIndex="999">
+            
+            <Grid.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding ClosePopupCommand}"/>
+            </Grid.GestureRecognizers>
+
+            <Frame VerticalOptions="Center" HorizontalOptions="Center"
+                   WidthRequest="380" CornerRadius="20" Padding="25"
+                   BackgroundColor="{AppThemeBinding Light=White, Dark=#252525}">
+                
+                <Frame.GestureRecognizers>
+                    <TapGestureRecognizer />
+                </Frame.GestureRecognizers>
+
+                <VerticalStackLayout Spacing="15">
+                    
+                    <Label Text="Plan Oluştur" FontSize="22" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
+
+                    <Entry Placeholder="Ne yapacaksın?" Text="{Binding EntryTitle}" 
+                           FontSize="16" BackgroundColor="Transparent"/>
+                    
+                    <VerticalStackLayout Spacing="5">
+                        <Label Text="Tarih" FontSize="13" TextColor="Gray"/>
+                        <Frame Padding="10,0" CornerRadius="8" BorderColor="LightGray" HasShadow="False" HeightRequest="45" BackgroundColor="{AppThemeBinding Light=White, Dark=#333}">
+                            <DatePicker Date="{Binding EntryDate}" 
+                                        TextColor="{AppThemeBinding Light=Black, Dark=White}"
+                                        Format="dd MMMM yyyy"
+                                        VerticalOptions="Center"/>
+                        </Frame>
+                    </VerticalStackLayout>
+
+                    <Grid ColumnDefinitions="*, *" ColumnSpacing="15">
+                        </Grid>
+                    
+                    <VerticalStackLayout Spacing="15">
+                        
+                        <VerticalStackLayout Spacing="5">
+                            <Label Text="Başlangıç Saati" FontSize="13" TextColor="Gray"/>
+                            <Frame Padding="0" CornerRadius="8" BorderColor="LightGray" HasShadow="False" HeightRequest="50" BackgroundColor="{AppThemeBinding Light=White, Dark=#333}">
+                                <TimePicker Time="{Binding EntryStartTime}" 
+                                            TextColor="{AppThemeBinding Light=Black, Dark=White}"
+                                            Format="HH:mm"
+                                            FontSize="18"
+                                            HorizontalOptions="Center"
+                                            VerticalOptions="Center"/>
+                            </Frame>
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Spacing="5">
+                            <Label Text="Bitiş Saati" FontSize="13" TextColor="Gray"/>
+                            <Frame Padding="0" CornerRadius="8" BorderColor="LightGray" HasShadow="False" HeightRequest="50" BackgroundColor="{AppThemeBinding Light=White, Dark=#333}">
+                                <TimePicker Time="{Binding EntryEndTime}" 
+                                            TextColor="{AppThemeBinding Light=Black, Dark=White}"
+                                            Format="HH:mm"
+                                            FontSize="18"
+                                            HorizontalOptions="Center"
+                                            VerticalOptions="Center"/>
+                            </Frame>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+
+                    <Grid ColumnDefinitions="*, *" ColumnSpacing="15" Margin="0,10,0,0">
+                        <Button Text="İptal" Command="{Binding ClosePopupCommand}"
+                                BackgroundColor="#EEEEEE" TextColor="Black" Grid.Column="0" CornerRadius="12" HeightRequest="50"/>
+                        
+                        <Button Text="Kaydet" Command="{Binding SaveEntryCommand}"
+                                BackgroundColor="{AppThemeBinding Light=Black, Dark=#52D1DC}" 
+                                TextColor="{AppThemeBinding Light=White, Dark=Black}" 
+                                Grid.Column="1" CornerRadius="12" HeightRequest="50" FontAttributes="Bold"/>
+                    </Grid>
+
+                </VerticalStackLayout>
+            </Frame>
+        </Grid>
+
+    </Grid>
 </ContentPage>

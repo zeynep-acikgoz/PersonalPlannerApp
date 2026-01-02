@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
+using PersonalPlannerApp.ViewModels; 
+using PersonalPlannerApp.Views;    
 
 namespace PersonalPlannerApp;
 
@@ -18,12 +20,16 @@ public static class MauiProgram
 #if DEBUG
         builder.Logging.AddDebug();
 #endif
-
-        // Veritabanı servisini ve Sayfaları sisteme tanıtıyoruz
+        
         builder.Services.AddSingleton<LocalDbService>();
 
-        builder.Services.AddTransient<PersonalPlannerApp.ViewModels.ToDoViewModel>();
-        builder.Services.AddTransient<PersonalPlannerApp.Views.ToDoPage>();
+      
+        builder.Services.AddTransient<ToDoViewModel>();
+        builder.Services.AddTransient<ToDoPage>();
+        
+        builder.Services.AddTransient<PlannerViewModel>();
+        builder.Services.AddTransient<PlanPage>();
+
         return builder.Build();
     }
 }

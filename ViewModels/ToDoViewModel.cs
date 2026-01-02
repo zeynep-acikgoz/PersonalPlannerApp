@@ -9,8 +9,7 @@ namespace PersonalPlannerApp.ViewModels;
 public class ToDoViewModel : BindableObject
 {
     private readonly LocalDbService _dbService;
-
-    // --- DEĞİŞİKLİK 1: Listenin referansını değiştireceğimiz için Full Property yapıyoruz ---
+    
     private ObservableCollection<ToDoGroup> _groupedTasks;
     public ObservableCollection<ToDoGroup> GroupedTasks
     {
@@ -18,11 +17,11 @@ public class ToDoViewModel : BindableObject
         set
         {
             _groupedTasks = value;
-            OnPropertyChanged(); // Ekran, listenin tamamen değiştiğini anlar
+            OnPropertyChanged();
         }
     }
 
-    // --- GİRİŞ ALANLARI ---
+    
     private string _newTaskText;
     public string NewTaskText
     {
@@ -30,7 +29,16 @@ public class ToDoViewModel : BindableObject
         set { _newTaskText = value; OnPropertyChanged(); }
     }
 
-    // KATEGORİLER
+    // -------------------
+    
+    private ToDoItem _editItem; 
+    
+    public bool IsEditing => _editItem != null;
+    
+    public string StateButtonText => _editItem == null ? "+" : "OK";
+
+    // ----------------
+    
     private readonly string[] _categories = { "School", "Work", "Personal" };
     private int _categoryIndex = 0;
     public string SelectedCategory => _categories[_categoryIndex];
@@ -49,7 +57,8 @@ public class ToDoViewModel : BindableObject
         }
     }
 
-    // ÖNCELİKLER
+    // ------------------
+    
     private readonly string[] _priorities = { "Low", "Medium", "High" };
     private int _priorityIndex = 2; 
     public string SelectedPriority => _priorities[_priorityIndex];
@@ -68,7 +77,8 @@ public class ToDoViewModel : BindableObject
         }
     }
 
-    // TARİH
+    // -------------
+    
     private bool _hasDueDate;
     public bool HasDueDate
     {
@@ -83,25 +93,32 @@ public class ToDoViewModel : BindableObject
         set { _selectedDate = value; OnPropertyChanged(); }
     }
 
-    // --- KOMUTLAR ---
+    // ---------------
+    
     public ICommand AddTaskCommand { get; }
     public ICommand DeleteTaskCommand { get; }
     public ICommand RefreshCommand { get; }
+    public ICommand ToggleCompleteCommand { get; }
+    public ICommand EditTaskCommand { get; }
     public ICommand CycleCategoryCommand { get; }
     public ICommand CyclePriorityCommand { get; }
     public ICommand ToggleGroupCommand { get; }
-    // Not: ToggleCompleteCommand'i CheckBox'ın kendi özelliğiyle yöneteceğiz veya gerekirse ekleriz.
-
+    
+    
+    // ----------
+    
     public ToDoViewModel(LocalDbService dbService)
     {
         _dbService = dbService;
         
-        // Başlangıçta boş bir liste ata
         GroupedTasks = new ObservableCollection<ToDoGroup>();
 
+       
         AddTaskCommand = new Command(async () => await PerformAddTask());
         DeleteTaskCommand = new Command<ToDoItem>(async (item) => await PerformDeleteTask(item));
         RefreshCommand = new Command(async () => await LoadTasks());
+        ToggleCompleteCommand = new Command<ToDoItem>(async (item) => await PerformToggleComplete(item));
+        EditTaskCommand = new Command<ToDoItem>(PerformEditTask); 
 
         CycleCategoryCommand = new Command(() =>
         {
@@ -122,38 +139,31 @@ public class ToDoViewModel : BindableObject
             if (group != null)
                 group.IsExpanded = !group.IsExpanded;
         });
-
-        // Uygulama açılır açılmaz verileri çek
+        
         Task.Run(LoadTasks);
     }
 
-    // --- DEĞİŞİKLİK 2: KESİN ÇÖZÜM BURADA ---
-    // Listeyi silmek (Clear) yerine yeni bir liste oluşturup atıyoruz (Swap).
+    // ---------------------------
     private async Task LoadTasks()
     {
         try
         {
             var allTasks = await _dbService.GetTasksAsync();
 
-            // Verileri arka planda hazırla (UI thread'i yorma)
             var sorted = allTasks.OrderBy(t => t.IsCompleted).ThenBy(t => t.DueDate).ToList();
             
             var high = sorted.Where(t => t.PriorityLevel == 2).ToList();
             var medium = sorted.Where(t => t.PriorityLevel == 1).ToList();
             var low = sorted.Where(t => t.PriorityLevel == 0).ToList();
 
-            // Geçici bir koleksiyon oluştur
             var newCollection = new ObservableCollection<ToDoGroup>();
 
             if (high.Any()) newCollection.Add(new ToDoGroup("High Priority 🔥", high));
             if (medium.Any()) newCollection.Add(new ToDoGroup("Medium Priority ⚡", medium));
             if (low.Any()) newCollection.Add(new ToDoGroup("Low Priority ☕", low));
 
-            // UI'ı güncelle
             MainThread.BeginInvokeOnMainThread(() =>
             {
-                // Clear() ve Add() YAPMIYORUZ. Direkt yeni listeyi atıyoruz.
-                // Bu sayede "Collection modified" hatası alman imkansızlaşır.
                 GroupedTasks = newCollection; 
             });
         }
@@ -163,41 +173,107 @@ public class ToDoViewModel : BindableObject
         }
     }
 
+    // ----------------------
+    private async Task PerformDeleteTask(ToDoItem item)
+    {
+        if (item == null) return;
+        await _dbService.DeleteTaskAsync(item);
+        await LoadTasks();
+    }
+    
+    // ------------------
+    
+    private async Task PerformToggleComplete(ToDoItem item)
+    {
+        await _dbService.SaveTaskAsync(item);
+    }
+    
+    // ----------------------
+    private void PerformEditTask(ToDoItem item)
+    {
+        if (item == null) return;
+
+        _editItem = item; 
+        
+        
+        NewTaskText = item.Title;
+        HasDueDate = item.DueDate.HasValue;
+        if (item.DueDate.HasValue) SelectedDate = item.DueDate.Value;
+        
+        for (int i = 0; i < _categories.Length; i++)
+        {
+            if (_categories[i] == item.Category)
+            {
+                _categoryIndex = i;
+                OnPropertyChanged(nameof(SelectedCategory));
+                OnPropertyChanged(nameof(CategoryButtonColor));
+                break;
+            }
+        }
+        
+        for (int i = 0; i < _priorities.Length; i++)
+        {
+            if (i == item.PriorityLevel) 
+            {
+                _priorityIndex = i;
+                OnPropertyChanged(nameof(SelectedPriority));
+                OnPropertyChanged(nameof(PriorityButtonColor));
+                break;
+            }
+        }
+        
+        OnPropertyChanged(nameof(StateButtonText));
+        OnPropertyChanged(nameof(IsEditing)); 
+    }
+
+    // ----------------------------------------------------
+    
     private async Task PerformAddTask()
     {
-        if (string.IsNullOrWhiteSpace(NewTaskText)) return;
+        if (string.IsNullOrWhiteSpace(NewTaskText))
+        {
+            await Shell.Current.DisplayAlert("Uyarı", "Lütfen bir görev adı giriniz.", "Tamam");
+            return; 
+        }
 
         try
         {
-            var newTask = new ToDoItem
+            if (_editItem == null)
             {
-                Title = NewTaskText,
-                IsCompleted = false,
-                DueDate = HasDueDate ? SelectedDate : (DateTime?)null, 
-                Category = SelectedCategory,
-                PriorityLevel = _priorityIndex
-            };
-
-            await _dbService.SaveTaskAsync(newTask);
+                var newTask = new ToDoItem
+                {
+                    Title = NewTaskText,
+                    IsCompleted = false,
+                    DueDate = HasDueDate ? SelectedDate : (DateTime?)null, 
+                    Category = SelectedCategory,
+                    PriorityLevel = _priorityIndex
+                };
+                await _dbService.SaveTaskAsync(newTask);
+            }
+            else
+            {
+                _editItem.Title = NewTaskText;
+                _editItem.DueDate = HasDueDate ? SelectedDate : (DateTime?)null;
+                _editItem.Category = SelectedCategory;
+                _editItem.PriorityLevel = _priorityIndex;
+                
+                await _dbService.SaveTaskAsync(_editItem);
+                
+                _editItem = null; 
+            }
 
             NewTaskText = string.Empty;
             HasDueDate = false;
+            
+            OnPropertyChanged(nameof(StateButtonText)); 
+            OnPropertyChanged(nameof(IsEditing));   
 
-            // Klavye kapanma süresi için bekleme (Crash önleyici)
             await Task.Delay(250); 
-
             await LoadTasks(); 
         }
         catch (Exception ex)
         {
             await Shell.Current.DisplayAlert("Hata", ex.Message, "Tamam");
         }
-    }
-
-    private async Task PerformDeleteTask(ToDoItem item)
-    {
-        if (item == null) return;
-        await _dbService.DeleteTaskAsync(item);
-        await LoadTasks(); // Listeyi yenile
     }
 }
