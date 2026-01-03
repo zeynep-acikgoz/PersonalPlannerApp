@@ -12,11 +12,47 @@
     Shell.ForegroundColor="{AppThemeBinding Light=Black, Dark=White}"
     Shell.TitleColor="{AppThemeBinding Light=Black, Dark=White}"
     
+    Shell.TabBarBackgroundColor="{AppThemeBinding Light=White, Dark=#1c1c1e}"
     
     
-    Shell.TabBarBackgroundColor="{AppThemeBinding Light=#f0f0f0, Dark=#1c1c1e}"
-    Shell.TabBarTitleColor="{AppThemeBinding Light=Black, Dark=White}"
-    Shell.TabBarUnselectedColor="{AppThemeBinding Light=Gray, Dark=Gray}">
+    Shell.TabBarForegroundColor="{AppThemeBinding Light=Black, Dark=White}"
+    Shell.TabBarUnselectedColor="Gray">
+
+    <Shell.ItemTemplate>
+        <DataTemplate>
+            <Grid Padding="0"
+                  VerticalOptions="Center" 
+                  HorizontalOptions="Center">
+                
+                <Label Text="{Binding Title}" 
+                       FontSize="14" 
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center">
+                    
+                    <VisualStateManager.VisualStateGroups>
+                        <VisualStateGroup x:Name="CommonStates">
+                            
+                            <VisualState x:Name="Normal">
+                                <VisualState.Setters>
+                                    <Setter Property="TextColor" Value="Gray" />
+                                    <Setter Property="FontAttributes" Value="None" />
+                                </VisualState.Setters>
+                            </VisualState>
+                            
+                            <VisualState x:Name="Selected">
+                                <VisualState.Setters>
+                                    <Setter Property="TextColor" Value="{AppThemeBinding Light=Black, Dark=White}" />
+                                    <Setter Property="FontAttributes" Value="Bold" />
+                                </VisualState.Setters>
+                            </VisualState>
+
+                        </VisualStateGroup>
+                    </VisualStateManager.VisualStateGroups>
+                </Label>
+                
+            </Grid>
+        </DataTemplate>
+    </Shell.ItemTemplate>
 
     <TabBar>
         <ShellContent Title="Home" ContentTemplate="{DataTemplate views:HomePage}" Route="HomePage" />

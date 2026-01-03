@@ -10,6 +10,8 @@ public class PlannerViewModel : BindableObject, IQueryAttributable
 {
     private readonly LocalDbService _dbService;
 
+    //--------------
+
     public ObservableCollection<CalendarModel> CalendarDays { get; set; } = new();
 
     private CalendarModel _selectedDay;
@@ -46,12 +48,16 @@ public class PlannerViewModel : BindableObject, IQueryAttributable
         }
     }
 
+    //--------------
+
     private ObservableCollection<PlannerItem> _plannerItems;
     public ObservableCollection<PlannerItem> PlannerItems
     {
         get => _plannerItems;
         set { _plannerItems = value; OnPropertyChanged(); }
     }
+
+    //--------------
 
     private bool _isPopupVisible;
     public bool IsPopupVisible
@@ -82,8 +88,6 @@ public class PlannerViewModel : BindableObject, IQueryAttributable
         { 
             _entryStartTime = value; 
             OnPropertyChanged(); 
-
-            // Başlangıç saati değişince, bitişi otomatik 1 saat sonraya ayarla
             EntryEndTime = _entryStartTime.Add(TimeSpan.FromHours(1));
         }
     }
@@ -97,7 +101,8 @@ public class PlannerViewModel : BindableObject, IQueryAttributable
 
     private PlannerItem _editingItem;
 
-    // --- KOMUTLAR ---
+    //--------------
+
     public ICommand SelectDateCommand { get; }
     public ICommand DeletePlanCommand { get; }
     public ICommand TogglePlanCompleteCommand { get; }
@@ -105,6 +110,7 @@ public class PlannerViewModel : BindableObject, IQueryAttributable
     public ICommand ClosePopupCommand { get; }
     public ICommand SaveEntryCommand { get; }
     public ICommand EditPlanCommand { get; }
+    public ICommand SendToToDoCommand { get; }
 
     public PlannerViewModel(LocalDbService dbService)
     {
@@ -113,13 +119,11 @@ public class PlannerViewModel : BindableObject, IQueryAttributable
 
         GenerateCalendar();
 
-        
         SelectDateCommand = new Command<CalendarModel>((day) => SelectedDay = day);
-        
         
         DeletePlanCommand = new Command<PlannerItem>(async (item) => 
         {
-            bool answer = await Shell.Current.DisplayAlert("Sil", "Bu planı silmek istiyor musun?", "Evet", "Hayır");
+            bool answer = await Shell.Current.DisplayAlert("Delete", "Are you sure?", "Yes", "No");
             if(answer)
             {
                 await _dbService.DeletePlannerItemAsync(item);
@@ -127,13 +131,11 @@ public class PlannerViewModel : BindableObject, IQueryAttributable
             }
         });
 
-        
         TogglePlanCompleteCommand = new Command<PlannerItem>(async (item) =>
         {
             await _dbService.SavePlannerItemAsync(item);
         });
         
-       
         OpenAddPopupCommand = new Command(() =>
         {
             _editingItem = null;
@@ -149,16 +151,16 @@ public class PlannerViewModel : BindableObject, IQueryAttributable
             _editingItem = item;
             EntryTitle = item.Title;
             EntryDate = item.Date; 
-            
             EntryStartTime = item.StartTime;
             EntryEndTime = item.EndTime;
-            
             IsPopupVisible = true;
         });
 
         ClosePopupCommand = new Command(() => IsPopupVisible = false);
 
         SaveEntryCommand = new Command(async () => await PerformSaveEntry());
+
+        SendToToDoCommand = new Command<PlannerItem>(async (item) => await PerformSendToToDo(item));
     }
 
     private void GenerateCalendar()
@@ -193,19 +195,18 @@ public class PlannerViewModel : BindableObject, IQueryAttributable
     {
         if (string.IsNullOrWhiteSpace(EntryTitle))
         {
-            await Shell.Current.DisplayAlert("Uyarı", "Lütfen plan başlığını giriniz.", "Tamam");
+            await Shell.Current.DisplayAlert("Warning", "Title required.", "OK");
             return;
         }
 
         if (EntryEndTime < EntryStartTime)
         {
-            await Shell.Current.DisplayAlert("Hata", "Bitiş saati başlangıçtan önce olamaz.", "Tamam");
+            await Shell.Current.DisplayAlert("Error", "End time must be after start time.", "OK");
             return;
         }
 
         if (_editingItem == null)
         {
-            // Yeni Kayıt
             var newItem = new PlannerItem
             {
                 Title = EntryTitle,
@@ -218,7 +219,6 @@ public class PlannerViewModel : BindableObject, IQueryAttributable
         }
         else
         {
-            // Güncelleme
             _editingItem.Title = EntryTitle;
             _editingItem.Date = EntryDate;
             _editingItem.StartTime = EntryStartTime;
@@ -230,25 +230,38 @@ public class PlannerViewModel : BindableObject, IQueryAttributable
         await LoadPlans(SelectedDay.Date);
     }
 
-   //------------------
+    //--------------
+
+    private async Task PerformSendToToDo(PlannerItem item)
+    {
+        if (item == null) return;
+
+        var navParam = new Dictionary<string, object>
+        {
+            { "PlanTitle", item.Title }
+        };
+        
+        await Shell.Current.GoToAsync("//ToDoPage", navParam);
+    }
+
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
         if (query.ContainsKey("TaskTitle"))
         {
             var title = query["TaskTitle"] as string;
             
-            _editingItem = null; // Yeni kayıt moduna geç
-            EntryTitle = title;  // Gelen başlığı ata
+            _editingItem = null; 
+            EntryTitle = title;  
             EntryDate = SelectedDay != null ? SelectedDay.Date : DateTime.Today; 
             EntryStartTime = DateTime.Now.TimeOfDay;
             EntryEndTime = DateTime.Now.AddHours(1).TimeOfDay;
             
-            IsPopupVisible = true; // Popup'ı otomatik aç
+            IsPopupVisible = true; 
         }
     }
 }
 
-//------------------------
+//--------------
 
 public class CalendarModel : BindableObject
 {

@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="PersonalPlannerApp.Views.HomePage"
              Title="Home"
+             BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#121212}"
              Shell.NavBarIsVisible="False"> 
     <Grid RowDefinitions="Auto, Auto, Auto, *" Padding="20" RowSpacing="15">
 
@@ -17,8 +18,9 @@
                    VerticalOptions="Center"/>
 
             <StackLayout Grid.Column="1" Orientation="Horizontal" Spacing="5">
-                <Label Text="🌙" VerticalOptions="Center" FontSize="18"/>
+                <Label Text="☀️" VerticalOptions="Center" FontSize="18"/>
                 <Switch x:Name="ThemeSwitch" Toggled="OnThemeSwitchToggled" />
+                <Label Text="🌙" VerticalOptions="Center" FontSize="16"/>
             </StackLayout>
             
         </Grid>
@@ -29,26 +31,37 @@
                TextColor="Gray"
                Grid.Row="1" />
 
-        <Frame Grid.Row="2" Padding="10" BackgroundColor="{AppThemeBinding Light=#e0e0e0, Dark=#333}">
+        <Frame Grid.Row="2" Padding="10" BackgroundColor="{AppThemeBinding Light=#e0e0e0, Dark=#333}" BorderColor="Transparent" CornerRadius="10">
             <HorizontalStackLayout Spacing="15" HorizontalOptions="Center">
-                <Label Text="Morn:" VerticalOptions="Center"/>
-                <TimePicker x:Name="PickerMorning" Time="06:00" PropertyChanged="OnTimeChanged"/>
-                <Label Text="Eve:" VerticalOptions="Center"/>
-                <TimePicker x:Name="PickerEvening" Time="18:00" PropertyChanged="OnTimeChanged"/>
+                <Label Text="Morn:" VerticalOptions="Center" TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
+                <TimePicker x:Name="PickerMorning" Time="06:00" PropertyChanged="OnTimeChanged" TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
+                
+                <Label Text="Eve:" VerticalOptions="Center" TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
+                <TimePicker x:Name="PickerEvening" Time="18:00" PropertyChanged="OnTimeChanged" TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
             </HorizontalStackLayout>
         </Frame>
 
         <Grid Grid.Row="3" ColumnDefinitions="*,*" ColumnSpacing="15">
-            <Frame Grid.Column="0" BackgroundColor="{AppThemeBinding Light=#fff3cd, Dark=#4a3b00}" BorderColor="Transparent" CornerRadius="15" Padding="15">
+            
+            <Frame Grid.Column="0" 
+                   BackgroundColor="{AppThemeBinding Light=#E1F5FE, Dark=#103550}" 
+                   BorderColor="Transparent" 
+                   CornerRadius="15" 
+                   Padding="15">
                 <StackLayout>
                     <Label Text="☀️ Morning" FontAttributes="Bold" FontSize="18" TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
-                    <Label Text="Focus on main goal." FontSize="14" TextColor="Gray"/>
+                    <Label Text="Focus on main goal." FontSize="14" TextColor="{AppThemeBinding Light=Gray, Dark=#B0BEC5}"/>
                 </StackLayout>
             </Frame>
-            <Frame Grid.Column="1" x:Name="FrameEvening" IsVisible="False" BackgroundColor="{AppThemeBinding Light=#d1e7dd, Dark=#0f5132}" BorderColor="Transparent" CornerRadius="15" Padding="15">
+            
+            <Frame Grid.Column="1" x:Name="FrameEvening" IsVisible="False" 
+                   BackgroundColor="{AppThemeBinding Light=#C5CAE9, Dark=#1A237E}" 
+                   BorderColor="Transparent" 
+                   CornerRadius="15" 
+                   Padding="15">
                 <StackLayout>
                     <Label Text="🌙 Evening" FontAttributes="Bold" FontSize="18" TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
-                    <Label Text="Review your day." FontSize="14" TextColor="Gray"/>
+                    <Label Text="Review your day." FontSize="14" TextColor="{AppThemeBinding Light=Gray, Dark=#C5CAE9}"/>
                 </StackLayout>
             </Frame>
         </Grid>

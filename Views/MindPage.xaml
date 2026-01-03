@@ -1,9 +1,84 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="PersonalPlannerApp.Views.MindPage">
-    <ContentPage.Content>
-        
-    </ContentPage.Content>
+             xmlns:vm="clr-namespace:PersonalPlannerApp.ViewModels"
+             x:Class="PersonalPlannerApp.Views.MindPage"
+             Title="Mind"
+             BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#121212}">
+
+    <ContentPage.BindingContext>
+        <vm:MindViewModel />
+    </ContentPage.BindingContext>
+
+    <Grid RowDefinitions="Auto, *" Padding="20" RowSpacing="10">
+
+        <Label Grid.Row="0" 
+               Text="My Mind" 
+               FontSize="30" 
+               FontAttributes="Bold"
+               TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
+
+        <CollectionView Grid.Row="1" ItemsSource="{Binding MindItems}">
+            
+            <CollectionView.EmptyView>
+                <ContentView>
+                    <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="20" Margin="0,-50,0,0">
+                        
+                        <Label Text="🧠" 
+                               FontSize="80" 
+                               HorizontalOptions="Center"
+                               Opacity="0.8"/>
+                        
+                        <Label Text="A free mind is a creative mind." 
+                               FontSize="18" 
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light=Black, Dark=White}"
+                               HorizontalOptions="Center" 
+                               HorizontalTextAlignment="Center"/>
+                        
+                        <Label Text="Capture your ideas, dreams, or quick notes here. " 
+                               FontSize="14" 
+                               TextColor="Gray" 
+                               HorizontalOptions="Center" 
+                               HorizontalTextAlignment="Center"
+                               WidthRequest="250"/>
+
+                        <Button Text="Add First Note" 
+                                Command="{Binding AddItemCommand}"
+                                BackgroundColor="{AppThemeBinding Light=Black, Dark=White}"
+                                TextColor="{AppThemeBinding Light=White, Dark=Black}"
+                                CornerRadius="20"
+                                FontAttributes="Bold"
+                                HeightRequest="45"
+                                WidthRequest="160"
+                                Margin="0,10,0,0"/>
+
+                    </VerticalStackLayout>
+                </ContentView>
+            </CollectionView.EmptyView>
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Frame Margin="0,5" Padding="15" CornerRadius="15" BorderColor="Transparent"
+                           BackgroundColor="{AppThemeBinding Light=White, Dark=#Black}">
+                        <Label Text="{Binding .}" FontSize="16" TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
+                    </Frame>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+
+        </CollectionView>
+
+        <Button Grid.Row="1" Text="+" 
+                Command="{Binding AddItemCommand}"
+                FontSize="30" TextColor="White"
+                BackgroundColor="{AppThemeBinding Light=Black, Dark=#White}"
+                WidthRequest="60" HeightRequest="60" CornerRadius="30"
+                HorizontalOptions="End" VerticalOptions="End"
+                Margin="10">
+            <Button.Shadow>
+                <Shadow Brush="Black" Offset="2,2" Opacity="0.5"/>
+            </Button.Shadow>
+        </Button>
+
+    </Grid>
 </ContentPage>

@@ -4,6 +4,7 @@
              xmlns:vm="clr-namespace:PersonalPlannerApp.ViewModels"
              x:Class="PersonalPlannerApp.Views.PlanPage"
              x:Name="ThePlanPage"
+             Title="Weekly Plan"
              BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#121212}">
 
     <Grid RowDefinitions="Auto, Auto, *" Padding="0" RowSpacing="10">
@@ -70,10 +71,9 @@
                 <DataTemplate>
                     
                     <SwipeView>
-                        
                         <SwipeView.RightItems>
                             <SwipeItems Mode="Reveal">
-                                <SwipeItem Text="Delete" 
+                                <SwipeItem Text="Sil" 
                                            BackgroundColor="#FF3B30" 
                                            Command="{Binding Source={x:Reference ThePlanPage}, Path=BindingContext.DeletePlanCommand}"
                                            CommandParameter="{Binding .}"/>
@@ -92,13 +92,18 @@
 
                             <Grid ColumnDefinitions="80, *, Auto, Auto, Auto" RowDefinitions="Auto">
                                 
-                                <BoxView Color="#E3F2FD" Grid.Column="0"/> 
+                                <BoxView Color="{AppThemeBinding Light=#E1F5FE, Dark=#1A2A40}" Grid.Column="0"/> 
+                                
                                 <VerticalStackLayout Grid.Column="0" VerticalOptions="Center" Spacing="2">
                                     <Label Text="{Binding StartTime, StringFormat='{0:hh\\:mm}'}" 
-                                           TextColor="#1565C0" FontAttributes="Bold" HorizontalOptions="Center"/>
-                                    <Label Text="|" TextColor="#90CAF9" HorizontalOptions="Center" FontSize="10"/>
+                                           TextColor="{AppThemeBinding Light=#0277BD, Dark=#81D4FA}" 
+                                           FontAttributes="Bold" HorizontalOptions="Center"/>
+                                    
+                                    <Label Text="|" TextColor="{AppThemeBinding Light=#B3E5FC, Dark=#546E7A}" HorizontalOptions="Center" FontSize="10"/>
+                                    
                                     <Label Text="{Binding EndTime, StringFormat='{0:hh\\:mm}'}" 
-                                           TextColor="#1565C0" FontAttributes="Bold" HorizontalOptions="Center"/>
+                                           TextColor="{AppThemeBinding Light=#0277BD, Dark=#81D4FA}" 
+                                           FontSize="12" HorizontalOptions="Center"/>
                                 </VerticalStackLayout>
 
                                 <StackLayout Grid.Column="1" VerticalOptions="Center" Padding="10">
@@ -112,39 +117,36 @@
                                     </Label>
                                 </StackLayout>
 
-                                <CheckBox Grid.Column="2" IsChecked="{Binding IsCompleted, Mode=TwoWay}" 
-                                          Color="{AppThemeBinding Light=Black, Dark=#52D1DC}"
-                                          VerticalOptions="Center"/>
+                                <Border Grid.Column="2" Stroke="Transparent" BackgroundColor="Transparent" Padding="5" VerticalOptions="Center" Margin="0,0,5,0">
+                                    <Path Data="M19,3H14.82C14.4,1.84 13.3,1 12,1C10.7,1 9.6,1.84 9.18,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M12,3A1,1 0 0,1 13,3A1,1 0 0,1 12,4A1,1 0 0,1 11,3A1,1 0 0,1 12,3M7,7H17V5H19V19H5V5H7V7Z"
+                                          Fill="{AppThemeBinding Light=Black, Dark=White}" 
+                                          Aspect="Uniform" HeightRequest="18" WidthRequest="18"/>
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding Source={x:Reference ThePlanPage}, Path=BindingContext.SendToToDoCommand}" CommandParameter="{Binding .}"/>
+                                    </Border.GestureRecognizers>
+                                </Border>
 
-                                <ImageButton Grid.Column="3"
-                                             BackgroundColor="Transparent"
-                                             HeightRequest="40" WidthRequest="40"
-                                             VerticalOptions="Center"
-                                             Margin="0,0,5,0"
-                                             Command="{Binding Source={x:Reference ThePlanPage}, Path=BindingContext.EditPlanCommand}"
-                                             CommandParameter="{Binding .}">
-                                    <ImageButton.Source>
-                                        <FontImageSource Glyph="✏️" Color="Orange" Size="18" FontFamily="OpenSansRegular"/>
-                                    </ImageButton.Source>
-                                </ImageButton>
+                                <Border Grid.Column="3" Stroke="Transparent" BackgroundColor="Transparent" Padding="5" VerticalOptions="Center" Margin="0,0,5,0">
+                                    <Path Data="M14.06,9L15,9.94L5.92,19H5V18.08L14.06,9M17.66,3C17.41,3 17.15,3.1 16.96,3.29L15.13,5.12L18.88,8.87L20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18.17,3.09 17.92,3 17.66,3M14.06,6.19L3,17.25V21H6.75L17.81,9.94L14.06,6.19Z"
+                                          Fill="{AppThemeBinding Light=Black, Dark=White}" 
+                                          Aspect="Uniform" HeightRequest="18" WidthRequest="18"/>
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding Source={x:Reference ThePlanPage}, Path=BindingContext.EditPlanCommand}" CommandParameter="{Binding .}"/>
+                                    </Border.GestureRecognizers>
+                                </Border>
 
-                                <ImageButton Grid.Column="4"
-                                             BackgroundColor="Transparent"
-                                             HeightRequest="40" WidthRequest="40"
-                                             VerticalOptions="Center"
-                                             Margin="0,0,10,0"
-                                             Command="{Binding Source={x:Reference ThePlanPage}, Path=BindingContext.DeletePlanCommand}"
-                                             CommandParameter="{Binding .}">
-                                    <ImageButton.Source>
-                                        <FontImageSource Glyph="🗑" Color="#FF3B30" Size="20" FontFamily="OpenSansRegular"/>
-                                    </ImageButton.Source>
-                                </ImageButton>
+                                <CheckBox Grid.Column="4" 
+                                          IsChecked="{Binding IsCompleted, Mode=TwoWay}" 
+                                          Color="{AppThemeBinding Light=Black, Dark=White}"
+                                          VerticalOptions="Center"
+                                          Margin="0,0,10,0"/>
 
                             </Grid>
                         </Frame>
                         
                     </SwipeView>
-                    </DataTemplate>
+                    
+                </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
         
@@ -161,7 +163,7 @@
         </Button>
 
         <Grid Grid.Row="0" Grid.RowSpan="3" 
-              BackgroundColor="#80000000"
+              BackgroundColor="#CC000000"
               IsVisible="{Binding IsPopupVisible}"
               ZIndex="999">
             
@@ -195,7 +197,6 @@
                     </VerticalStackLayout>
 
                     <VerticalStackLayout Spacing="15">
-                        
                         <VerticalStackLayout Spacing="5">
                             <Label Text="Başlangıç Saati" FontSize="13" TextColor="Gray"/>
                             <Frame Padding="0" CornerRadius="8" BorderColor="LightGray" HasShadow="False" HeightRequest="50" BackgroundColor="{AppThemeBinding Light=White, Dark=#333}">

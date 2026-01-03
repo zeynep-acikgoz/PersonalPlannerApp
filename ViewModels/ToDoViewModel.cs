@@ -6,78 +6,68 @@ using Microsoft.Maui.Graphics;
 
 namespace PersonalPlannerApp.ViewModels;
 
-public class ToDoViewModel : BindableObject
+public class ToDoViewModel : BindableObject, IQueryAttributable
 {
     private readonly LocalDbService _dbService;
+    
+    //--------------
     
     private ObservableCollection<ToDoGroup> _groupedTasks;
     public ObservableCollection<ToDoGroup> GroupedTasks
     {
         get => _groupedTasks;
-        set
-        {
-            _groupedTasks = value;
-            OnPropertyChanged();
-        }
+        set { _groupedTasks = value; OnPropertyChanged(); }
     }
 
-    private string _newTaskText;
-    public string NewTaskText
+    //--------------
+    
+    private bool _isPopupVisible;
+    public bool IsPopupVisible
     {
-        get => _newTaskText;
-        set { _newTaskText = value; OnPropertyChanged(); }
+        get => _isPopupVisible;
+        set { _isPopupVisible = value; OnPropertyChanged(); }
     }
 
-    // -------------------
-    
-    private ToDoItem _editItem; 
-    
-    public bool IsEditing => _editItem != null;
-    
-    public string StateButtonText => _editItem == null ? "+" : "OK";
+    private string _popupTitleText;
+    public string PopupTitleText
+    {
+        get => _popupTitleText;
+        set { _popupTitleText = value; OnPropertyChanged(); }
+    }
 
-    // ----------------
+    private string _popupEntryText;
+    public string PopupEntryText
+    {
+        get => _popupEntryText;
+        set { _popupEntryText = value; OnPropertyChanged(); }
+    }
+
+    private ToDoItem _editingItem;
+
+    //--------------
     
     private readonly string[] _categories = { "School", "Work", "Personal" };
     private int _categoryIndex = 0;
     public string SelectedCategory => _categories[_categoryIndex];
-
-    public Color CategoryButtonColor
+    public Color CategoryButtonColor => SelectedCategory switch
     {
-        get
-        {
-            return SelectedCategory switch
-            {
-                "School" => Colors.CornflowerBlue,
-                "Work" => Colors.MediumPurple,
-                "Personal" => Colors.HotPink,
-                _ => Colors.Gray
-            };
-        }
-    }
+        "School" => Colors.CornflowerBlue,
+        "Work" => Colors.MediumPurple,
+        "Personal" => Colors.HotPink,
+        _ => Colors.Gray
+    };
 
-    // ------------------
-    
     private readonly string[] _priorities = { "Low", "Medium", "High" };
     private int _priorityIndex = 2; 
     public string SelectedPriority => _priorities[_priorityIndex];
-
-    public Color PriorityButtonColor
+    public Color PriorityButtonColor => SelectedPriority switch
     {
-        get
-        {
-            return SelectedPriority switch
-            {
-                "High" => Colors.OrangeRed,
-                "Medium" => Colors.Orange,
-                "Low" => Colors.SeaGreen,
-                _ => Colors.Gray
-            };
-        }
-    }
+        "High" => Colors.OrangeRed,
+        "Medium" => Colors.Orange,
+        "Low" => Colors.SeaGreen,
+        _ => Colors.Gray
+    };
 
-    // -------------
-    
     private bool _hasDueDate;
     public bool HasDueDate
     {
@@ -92,204 +82,164 @@ public class ToDoViewModel : BindableObject
         set { _selectedDate = value; OnPropertyChanged(); }
     }
 
-    // ---------------
+    //--------------
     
-    public ICommand AddTaskCommand { get; }
+    public ICommand SaveTaskCommand { get; }
     public ICommand DeleteTaskCommand { get; }
-    public ICommand RefreshCommand { get; }
     public ICommand ToggleCompleteCommand { get; }
+    public ICommand OpenAddPopupCommand { get; }
+    public ICommand ClosePopupCommand { get; }
     public ICommand EditTaskCommand { get; }
     public ICommand CycleCategoryCommand { get; }
     public ICommand CyclePriorityCommand { get; }
     public ICommand ToggleGroupCommand { get; }
-    
-    // --- YENİ EKLENEN KOMUT: PLANLAMA ---
     public ICommand PlanTaskCommand { get; }
-    
-    // ----------
-    
+
     public ToDoViewModel(LocalDbService dbService)
     {
         _dbService = dbService;
-        
         GroupedTasks = new ObservableCollection<ToDoGroup>();
 
-        AddTaskCommand = new Command(async () => await PerformAddTask());
+        SaveTaskCommand = new Command(async () => await PerformSaveTask());
+
+        OpenAddPopupCommand = new Command(() =>
+        {
+            _editingItem = null;
+            PopupTitleText = "New Task";
+            PopupEntryText = string.Empty;
+            HasDueDate = false;
+            _categoryIndex = 0; UpdateCategoryUI();
+            _priorityIndex = 2; UpdatePriorityUI();
+            IsPopupVisible = true;
+        });
+
+        ClosePopupCommand = new Command(() => IsPopupVisible = false);
+
+        EditTaskCommand = new Command<ToDoItem>((item) =>
+        {
+            if (item == null) return;
+            _editingItem = item;
+            PopupTitleText = "Edit Task";
+            PopupEntryText = item.Title;
+            HasDueDate = item.DueDate.HasValue;
+            if (item.DueDate.HasValue) SelectedDate = item.DueDate.Value;
+            
+            for (int i = 0; i < _categories.Length; i++) {
+                if (_categories[i] == item.Category) { _categoryIndex = i; break; }
+            }
+            UpdateCategoryUI();
+
+            for (int i = 0; i < _priorities.Length; i++) {
+                if (i == item.PriorityLevel) { _priorityIndex = i; break; }
+            }
+            UpdatePriorityUI();
+
+            IsPopupVisible = true;
+        });
+
         DeleteTaskCommand = new Command<ToDoItem>(async (item) => await PerformDeleteTask(item));
-        RefreshCommand = new Command(async () => await LoadTasks());
-        ToggleCompleteCommand = new Command<ToDoItem>(async (item) => await PerformToggleComplete(item));
-        EditTaskCommand = new Command<ToDoItem>(PerformEditTask); 
-
-        // --- YENİ PLANLAMA KOMUTU TANIMI ---
-        PlanTaskCommand = new Command<ToDoItem>(async (item) => await PerformPlanTask(item));
-
-        CycleCategoryCommand = new Command(() =>
+        ToggleCompleteCommand = new Command<ToDoItem>(async (item) => await _dbService.SaveTaskAsync(item));
+        
+        PlanTaskCommand = new Command<ToDoItem>(async (item) => 
         {
+            if (item == null) return;
+            var navParam = new Dictionary<string, object> { { "TaskTitle", item.Title } };
+            await Shell.Current.GoToAsync("//PlanPage", navParam);
+        });
+
+        CycleCategoryCommand = new Command(() => {
             _categoryIndex = (_categoryIndex + 1) % _categories.Length;
-            OnPropertyChanged(nameof(SelectedCategory));
-            OnPropertyChanged(nameof(CategoryButtonColor));
+            UpdateCategoryUI();
         });
 
-        CyclePriorityCommand = new Command(() =>
-        {
+        CyclePriorityCommand = new Command(() => {
             _priorityIndex = (_priorityIndex + 1) % _priorities.Length;
-            OnPropertyChanged(nameof(SelectedPriority));
-            OnPropertyChanged(nameof(PriorityButtonColor));
+            UpdatePriorityUI();
         });
 
-        ToggleGroupCommand = new Command<ToDoGroup>((group) =>
-        {
-            if (group != null)
-                group.IsExpanded = !group.IsExpanded;
-        });
+        ToggleGroupCommand = new Command<ToDoGroup>((group) => { if (group != null) group.IsExpanded = !group.IsExpanded; });
         
         Task.Run(LoadTasks);
     }
 
-    // ---------------------------
+    private void UpdateCategoryUI() { OnPropertyChanged(nameof(SelectedCategory)); OnPropertyChanged(nameof(CategoryButtonColor)); }
+    private void UpdatePriorityUI() { OnPropertyChanged(nameof(SelectedPriority)); OnPropertyChanged(nameof(PriorityButtonColor)); }
+
+    //--------------
+    
     private async Task LoadTasks()
     {
-        try
-        {
-            var allTasks = await _dbService.GetTasksAsync();
+        var allTasks = await _dbService.GetTasksAsync();
+        var sorted = allTasks.OrderBy(t => t.IsCompleted).ThenBy(t => t.DueDate).ToList();
+        
+        var high = sorted.Where(t => t.PriorityLevel == 2).ToList();
+        var medium = sorted.Where(t => t.PriorityLevel == 1).ToList();
+        var low = sorted.Where(t => t.PriorityLevel == 0).ToList();
 
-            var sorted = allTasks.OrderBy(t => t.IsCompleted).ThenBy(t => t.DueDate).ToList();
-            
-            var high = sorted.Where(t => t.PriorityLevel == 2).ToList();
-            var medium = sorted.Where(t => t.PriorityLevel == 1).ToList();
-            var low = sorted.Where(t => t.PriorityLevel == 0).ToList();
+        var newCollection = new ObservableCollection<ToDoGroup>();
+        if (high.Any()) newCollection.Add(new ToDoGroup("High Priority 🔥", high));
+        if (medium.Any()) newCollection.Add(new ToDoGroup("Medium Priority ⚡", medium));
+        if (low.Any()) newCollection.Add(new ToDoGroup("Low Priority ☕", low));
 
-            var newCollection = new ObservableCollection<ToDoGroup>();
-
-            if (high.Any()) newCollection.Add(new ToDoGroup("High Priority 🔥", high));
-            if (medium.Any()) newCollection.Add(new ToDoGroup("Medium Priority ⚡", medium));
-            if (low.Any()) newCollection.Add(new ToDoGroup("Low Priority ☕", low));
-
-            MainThread.BeginInvokeOnMainThread(() =>
-            {
-                GroupedTasks = newCollection; 
-            });
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"LoadTasks Hatası: {ex.Message}");
-        }
+        MainThread.BeginInvokeOnMainThread(() => GroupedTasks = newCollection);
     }
 
-    // ----------------------
+    private async Task PerformSaveTask()
+    {
+        if (string.IsNullOrWhiteSpace(PopupEntryText))
+        {
+            await Shell.Current.DisplayAlert("Warning", "Please enter a task title.", "OK");
+            return;
+        }
+
+        if (_editingItem == null)
+        {
+            var newTask = new ToDoItem
+            {
+                Title = PopupEntryText,
+                IsCompleted = false,
+                DueDate = HasDueDate ? SelectedDate : (DateTime?)null,
+                Category = SelectedCategory,
+                PriorityLevel = _priorityIndex
+            };
+            await _dbService.SaveTaskAsync(newTask);
+        }
+        else
+        {
+            _editingItem.Title = PopupEntryText;
+            _editingItem.DueDate = HasDueDate ? SelectedDate : (DateTime?)null;
+            _editingItem.Category = SelectedCategory;
+            _editingItem.PriorityLevel = _priorityIndex;
+            await _dbService.SaveTaskAsync(_editingItem);
+        }
+
+        IsPopupVisible = false;
+        PopupEntryText = string.Empty;
+        await Task.Delay(200);
+        await LoadTasks();
+    }
+
     private async Task PerformDeleteTask(ToDoItem item)
     {
         if (item == null) return;
         await _dbService.DeleteTaskAsync(item);
         await LoadTasks();
     }
-    
-    // ------------------
-    
-    private async Task PerformToggleComplete(ToDoItem item)
+
+    //--------------
+
+    public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
-        await _dbService.SaveTaskAsync(item);
-    }
-    
-    // ----------------------
-    private void PerformEditTask(ToDoItem item)
-    {
-        if (item == null) return;
-
-        _editItem = item; 
-        
-        NewTaskText = item.Title;
-        HasDueDate = item.DueDate.HasValue;
-        if (item.DueDate.HasValue) SelectedDate = item.DueDate.Value;
-        
-        for (int i = 0; i < _categories.Length; i++)
+        if (query.ContainsKey("PlanTitle"))
         {
-            if (_categories[i] == item.Category)
-            {
-                _categoryIndex = i;
-                OnPropertyChanged(nameof(SelectedCategory));
-                OnPropertyChanged(nameof(CategoryButtonColor));
-                break;
-            }
-        }
-        
-        for (int i = 0; i < _priorities.Length; i++)
-        {
-            if (i == item.PriorityLevel) 
-            {
-                _priorityIndex = i;
-                OnPropertyChanged(nameof(SelectedPriority));
-                OnPropertyChanged(nameof(PriorityButtonColor));
-                break;
-            }
-        }
-        
-        OnPropertyChanged(nameof(StateButtonText));
-        OnPropertyChanged(nameof(IsEditing)); 
-    }
-
-    // ----------------------------------------------------
-    
-    private async Task PerformAddTask()
-    {
-        if (string.IsNullOrWhiteSpace(NewTaskText))
-        {
-            await Shell.Current.DisplayAlert("Uyarı", "Lütfen bir görev adı giriniz.", "Tamam");
-            return; 
-        }
-
-        try
-        {
-            if (_editItem == null)
-            {
-                var newTask = new ToDoItem
-                {
-                    Title = NewTaskText,
-                    IsCompleted = false,
-                    DueDate = HasDueDate ? SelectedDate : (DateTime?)null, 
-                    Category = SelectedCategory,
-                    PriorityLevel = _priorityIndex
-                };
-                await _dbService.SaveTaskAsync(newTask);
-            }
-            else
-            {
-                _editItem.Title = NewTaskText;
-                _editItem.DueDate = HasDueDate ? SelectedDate : (DateTime?)null;
-                _editItem.Category = SelectedCategory;
-                _editItem.PriorityLevel = _priorityIndex;
-                
-                await _dbService.SaveTaskAsync(_editItem);
-                
-                _editItem = null; 
-            }
-
-            NewTaskText = string.Empty;
+            var title = query["PlanTitle"] as string;
+            
+            _editingItem = null;
+            PopupTitleText = "New Task from Plan";
+            PopupEntryText = title;
             HasDueDate = false;
             
-            OnPropertyChanged(nameof(StateButtonText)); 
-            OnPropertyChanged(nameof(IsEditing));   
-
-            await Task.Delay(250); 
-            await LoadTasks(); 
+            IsPopupVisible = true;
         }
-        catch (Exception ex)
-        {
-            await Shell.Current.DisplayAlert("Hata", ex.Message, "Tamam");
-        }
-    }
-
-    
-    private async Task PerformPlanTask(ToDoItem item)
-    {
-        if (item == null) return;
-
-        
-        var navigationParameter = new Dictionary<string, object>
-        {
-            { "TaskTitle", item.Title }
-        };
-
-        await Shell.Current.GoToAsync("//PlanPage", navigationParameter);
     }
 }
