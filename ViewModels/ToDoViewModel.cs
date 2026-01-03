@@ -21,7 +21,6 @@ public class ToDoViewModel : BindableObject
         }
     }
 
-    
     private string _newTaskText;
     public string NewTaskText
     {
@@ -104,6 +103,8 @@ public class ToDoViewModel : BindableObject
     public ICommand CyclePriorityCommand { get; }
     public ICommand ToggleGroupCommand { get; }
     
+    // --- YENİ EKLENEN KOMUT: PLANLAMA ---
+    public ICommand PlanTaskCommand { get; }
     
     // ----------
     
@@ -113,12 +114,14 @@ public class ToDoViewModel : BindableObject
         
         GroupedTasks = new ObservableCollection<ToDoGroup>();
 
-       
         AddTaskCommand = new Command(async () => await PerformAddTask());
         DeleteTaskCommand = new Command<ToDoItem>(async (item) => await PerformDeleteTask(item));
         RefreshCommand = new Command(async () => await LoadTasks());
         ToggleCompleteCommand = new Command<ToDoItem>(async (item) => await PerformToggleComplete(item));
         EditTaskCommand = new Command<ToDoItem>(PerformEditTask); 
+
+        // --- YENİ PLANLAMA KOMUTU TANIMI ---
+        PlanTaskCommand = new Command<ToDoItem>(async (item) => await PerformPlanTask(item));
 
         CycleCategoryCommand = new Command(() =>
         {
@@ -194,7 +197,6 @@ public class ToDoViewModel : BindableObject
         if (item == null) return;
 
         _editItem = item; 
-        
         
         NewTaskText = item.Title;
         HasDueDate = item.DueDate.HasValue;
@@ -275,5 +277,19 @@ public class ToDoViewModel : BindableObject
         {
             await Shell.Current.DisplayAlert("Hata", ex.Message, "Tamam");
         }
+    }
+
+    
+    private async Task PerformPlanTask(ToDoItem item)
+    {
+        if (item == null) return;
+
+        
+        var navigationParameter = new Dictionary<string, object>
+        {
+            { "TaskTitle", item.Title }
+        };
+
+        await Shell.Current.GoToAsync("//PlanPage", navigationParameter);
     }
 }

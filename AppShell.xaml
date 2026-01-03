@@ -6,7 +6,7 @@
     xmlns:views="clr-namespace:PersonalPlannerApp.Views"
     Title="PersonalPlannerApp"
     
-    
+    Shell.NavBarIsVisible="False"
     
     Shell.BackgroundColor="{AppThemeBinding Light=White, Dark=Black}"
     Shell.ForegroundColor="{AppThemeBinding Light=Black, Dark=White}"

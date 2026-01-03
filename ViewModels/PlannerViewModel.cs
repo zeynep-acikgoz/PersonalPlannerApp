@@ -6,11 +6,10 @@ using Microsoft.Maui.Graphics;
 
 namespace PersonalPlannerApp.ViewModels;
 
-public class PlannerViewModel : BindableObject
+public class PlannerViewModel : BindableObject, IQueryAttributable
 {
     private readonly LocalDbService _dbService;
 
-    // ------------- TAKVİM ŞERİDİ
     public ObservableCollection<CalendarModel> CalendarDays { get; set; } = new();
 
     private CalendarModel _selectedDay;
@@ -34,7 +33,6 @@ public class PlannerViewModel : BindableObject
         }
     }
 
-    // ---------Today's timeline değişsin diye
     public string TimelineTitle
     {
         get
@@ -48,8 +46,6 @@ public class PlannerViewModel : BindableObject
         }
     }
 
-    //-------------------------
-    
     private ObservableCollection<PlannerItem> _plannerItems;
     public ObservableCollection<PlannerItem> PlannerItems
     {
@@ -57,8 +53,6 @@ public class PlannerViewModel : BindableObject
         set { _plannerItems = value; OnPropertyChanged(); }
     }
 
-
-    
     private bool _isPopupVisible;
     public bool IsPopupVisible
     {
@@ -72,8 +66,6 @@ public class PlannerViewModel : BindableObject
         get => _entryTitle;
         set { _entryTitle = value; OnPropertyChanged(); }
     }
-
-
     
     private DateTime _entryDate;
     public DateTime EntryDate
@@ -91,7 +83,7 @@ public class PlannerViewModel : BindableObject
             _entryStartTime = value; 
             OnPropertyChanged(); 
 
-            // -----------bir saat sonrasına otomatik bitiş ayarlama
+            // Başlangıç saati değişince, bitişi otomatik 1 saat sonraya ayarla
             EntryEndTime = _entryStartTime.Add(TimeSpan.FromHours(1));
         }
     }
@@ -105,7 +97,7 @@ public class PlannerViewModel : BindableObject
 
     private PlannerItem _editingItem;
 
-    //-----------------
+    // --- KOMUTLAR ---
     public ICommand SelectDateCommand { get; }
     public ICommand DeletePlanCommand { get; }
     public ICommand TogglePlanCompleteCommand { get; }
@@ -121,7 +113,9 @@ public class PlannerViewModel : BindableObject
 
         GenerateCalendar();
 
+        
         SelectDateCommand = new Command<CalendarModel>((day) => SelectedDay = day);
+        
         
         DeletePlanCommand = new Command<PlannerItem>(async (item) => 
         {
@@ -133,19 +127,17 @@ public class PlannerViewModel : BindableObject
             }
         });
 
+        
         TogglePlanCompleteCommand = new Command<PlannerItem>(async (item) =>
         {
             await _dbService.SavePlannerItemAsync(item);
         });
-
         
-        //---------------------
-        
+       
         OpenAddPopupCommand = new Command(() =>
         {
             _editingItem = null;
             EntryTitle = string.Empty;
-            // Varsayılan olarak SEÇİLİ GÜN gelsin
             EntryDate = SelectedDay != null ? SelectedDay.Date : DateTime.Today; 
             EntryStartTime = DateTime.Now.TimeOfDay;
             EntryEndTime = DateTime.Now.AddHours(1).TimeOfDay;
@@ -159,7 +151,6 @@ public class PlannerViewModel : BindableObject
             EntryDate = item.Date; 
             
             EntryStartTime = item.StartTime;
-            
             EntryEndTime = item.EndTime;
             
             IsPopupVisible = true;
@@ -214,6 +205,7 @@ public class PlannerViewModel : BindableObject
 
         if (_editingItem == null)
         {
+            // Yeni Kayıt
             var newItem = new PlannerItem
             {
                 Title = EntryTitle,
@@ -237,7 +229,26 @@ public class PlannerViewModel : BindableObject
         IsPopupVisible = false;
         await LoadPlans(SelectedDay.Date);
     }
+
+   //------------------
+    public void ApplyQueryAttributes(IDictionary<string, object> query)
+    {
+        if (query.ContainsKey("TaskTitle"))
+        {
+            var title = query["TaskTitle"] as string;
+            
+            _editingItem = null; // Yeni kayıt moduna geç
+            EntryTitle = title;  // Gelen başlığı ata
+            EntryDate = SelectedDay != null ? SelectedDay.Date : DateTime.Today; 
+            EntryStartTime = DateTime.Now.TimeOfDay;
+            EntryEndTime = DateTime.Now.AddHours(1).TimeOfDay;
+            
+            IsPopupVisible = true; // Popup'ı otomatik aç
+        }
+    }
 }
+
+//------------------------
 
 public class CalendarModel : BindableObject
 {

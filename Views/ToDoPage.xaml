@@ -48,7 +48,7 @@
                     <HorizontalStackLayout Spacing="15" VerticalOptions="Center">
                         
                         <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
-                            <Label Text="📅" VerticalOptions="Center"/>
+                            <Label Text="Deadline" VerticalOptions="Center"/>
                             <CheckBox IsChecked="{Binding HasDueDate}" Color="{AppThemeBinding Light=Black, Dark=#52D1DC}"/>
                             <DatePicker Date="{Binding SelectedDate}" IsVisible="{Binding HasDueDate}" TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
                         </HorizontalStackLayout>
@@ -105,6 +105,7 @@
                     </VerticalStackLayout>
                 </ContentView>
             </CollectionView.EmptyView>
+
             <CollectionView.GroupHeaderTemplate>
                 <DataTemplate>
                     <Grid Padding="0,15,0,5" ColumnDefinitions="*, Auto">
@@ -119,7 +120,7 @@
                 </DataTemplate>
             </CollectionView.GroupHeaderTemplate>
 
-           <CollectionView.ItemTemplate>
+            <CollectionView.ItemTemplate>
                 <DataTemplate>
                     <SwipeView>
 
@@ -133,15 +134,10 @@
                         </SwipeView.RightItems>
 
                         <Grid BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#121212}"> 
-                            <Frame CornerRadius="12" Padding="10" BorderColor="Transparent" BackgroundColor="{AppThemeBinding Light=White, Dark=#1E1E1E}" Margin="0,0,0,0">
+                            <Frame CornerRadius="12" Padding="10" BorderColor="Transparent" 
+                                   BackgroundColor="{AppThemeBinding Light=White, Dark=#1E1E1E}" Margin="0,0,0,0">
                                 
-                                <Frame.GestureRecognizers>
-                                    <TapGestureRecognizer 
-                                        Command="{Binding Source={x:Reference TheToDoPage}, Path=BindingContext.EditTaskCommand}"
-                                        CommandParameter="{Binding .}" />
-                                </Frame.GestureRecognizers>
-                                
-                                <Grid ColumnDefinitions="5, *, Auto" ColumnSpacing="10">
+                                <Grid ColumnDefinitions="5, *, Auto, Auto, Auto" ColumnSpacing="10">
                                     
                                     <BoxView Color="{Binding CategoryColor}" WidthRequest="5" CornerRadius="2" VerticalOptions="Fill" Grid.Column="0"/>
                                     
@@ -157,8 +153,32 @@
                                         <Label Text="{Binding DueDate, StringFormat='Due: {0:dd MMM}'}" FontSize="12" TextColor="Gray"/>
                                     </StackLayout>
                                     
+                                    <ImageButton Grid.Column="2"
+                                                 BackgroundColor="Transparent"
+                                                 HeightRequest="35" WidthRequest="35"
+                                                 VerticalOptions="Center"
+                                                 Margin="0,0,5,0"
+                                                 Command="{Binding Source={x:Reference TheToDoPage}, Path=BindingContext.PlanTaskCommand}"
+                                                 CommandParameter="{Binding .}">
+                                        <ImageButton.Source>
+                                            <FontImageSource Glyph="📅" Color="#52D1DC" Size="20" FontFamily="OpenSansRegular"/>
+                                        </ImageButton.Source>
+                                    </ImageButton>
+
+                                    <ImageButton Grid.Column="3"
+                                                 BackgroundColor="Transparent"
+                                                 HeightRequest="35" WidthRequest="35"
+                                                 VerticalOptions="Center"
+                                                 Margin="0,0,10,0"
+                                                 Command="{Binding Source={x:Reference TheToDoPage}, Path=BindingContext.EditTaskCommand}"
+                                                 CommandParameter="{Binding .}">
+                                        <ImageButton.Source>
+                                            <FontImageSource Glyph="✏️" Color="Orange" Size="18" FontFamily="OpenSansRegular"/>
+                                        </ImageButton.Source>
+                                    </ImageButton>
+
                                     <CheckBox IsChecked="{Binding IsCompleted}" 
-                                              Grid.Column="2" 
+                                              Grid.Column="4" 
                                               Color="{AppThemeBinding Light=Black, Dark=White}"
                                               CheckedChanged="CheckBox_CheckedChanged"/>
                                 </Grid>
