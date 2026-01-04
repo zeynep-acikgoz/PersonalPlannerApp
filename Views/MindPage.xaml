@@ -10,63 +10,110 @@
     <Grid>
         <Grid RowDefinitions="Auto, *" Padding="20" RowSpacing="15">
             
-            <Label Text="My Mind" FontSize="30" FontAttributes="Bold" TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
+            <Grid ColumnDefinitions="*, Auto" Margin="0,0,0,10">
+                <Label Text="My Mind" FontSize="30" FontAttributes="Bold" TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
+                
+                <Border Grid.Column="1" StrokeShape="RoundRectangle 12" StrokeThickness="0" 
+                        BackgroundColor="{AppThemeBinding Light=#E0E0E0, Dark=#333333}" Padding="12,6">
+                    <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                        <Path Data="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z" 
+                              Fill="{AppThemeBinding Light=Black, Dark=White}" 
+                              Aspect="Uniform" HeightRequest="14" WidthRequest="16" VerticalOptions="Center"/>
+                        <Label Text="{Binding SortText}" FontSize="12" FontAttributes="Bold" 
+                               TextColor="{AppThemeBinding Light=Black, Dark=White}" VerticalOptions="Center"/>
+                    </HorizontalStackLayout>
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding ToggleSortCommand}"/>
+                    </Border.GestureRecognizers>
+                </Border>
+            </Grid>
 
-            <CollectionView Grid.Row="1" ItemsSource="{Binding MindItems}" SelectionMode="None">
+            <CollectionView Grid.Row="1" ItemsSource="{Binding MindItems}">
                 <CollectionView.ItemsLayout>
                     <LinearItemsLayout Orientation="Vertical" ItemSpacing="15"/>
                 </CollectionView.ItemsLayout>
-                
-                <CollectionView.EmptyView>
-                    <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="10" Margin="0,50,0,0">
-                        <Label Text="🧠" FontSize="60"/>
-                        <Label Text="Henüz not yok." TextColor="Gray"/>
-                    </VerticalStackLayout>
-                </CollectionView.EmptyView>
-
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
                         <SwipeView>
                             <SwipeView.RightItems>
                                 <SwipeItems Mode="Reveal">
-                                    <SwipeItem Text="Delete" BackgroundColor="#FF3B30"
-                                               Command="{Binding Source={x:Reference TheMindPage}, Path=BindingContext.DeleteItemCommand}"
+                                    <SwipeItem Text="Delete" BackgroundColor="#FF3B30" 
+                                               Command="{Binding Source={x:Reference TheMindPage}, Path=BindingContext.DeleteItemCommand}" 
                                                CommandParameter="{Binding .}"/>
                                 </SwipeItems>
                             </SwipeView.RightItems>
                             
-                            <Frame CornerRadius="15" Padding="15" BackgroundColor="{AppThemeBinding Light=White, Dark=#1E1E1E}" BorderColor="Transparent">
-                                <VerticalStackLayout Spacing="5">
-                                    <Label Text="{Binding Title}" FontSize="18" FontAttributes="Bold" TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
-                                    <Label Text="{Binding Content}" TextColor="{AppThemeBinding Light=#333, Dark=#CCC}" LineBreakMode="WordWrap"/>
-                                    <Label Text="{Binding CreatedDate, StringFormat='{0:dd MMM HH:mm}'}" TextColor="Gray" FontSize="11" HorizontalOptions="End"/>
-                                </VerticalStackLayout>
-                                <Frame.GestureRecognizers>
-                                    <TapGestureRecognizer Command="{Binding Source={x:Reference TheMindPage}, Path=BindingContext.EditItemCommand}" CommandParameter="{Binding .}"/>
-                                </Frame.GestureRecognizers>
+                            <Frame CornerRadius="15" Padding="15" BackgroundColor="{Binding ColorCode}" BorderColor="Transparent">
+                                <Grid ColumnDefinitions="*, Auto">
+                                    <VerticalStackLayout Spacing="5" Grid.Column="0">
+                                        <Label Text="{Binding Title}" FontSize="18" FontAttributes="Bold" TextColor="Black"/>
+                                        <Label Text="{Binding Content}" TextColor="#333" LineBreakMode="WordWrap"/>
+                                        <Label Text="{Binding CreatedDate, StringFormat='{0:dd MMM HH:mm}'}" TextColor="#666" FontSize="11" HorizontalOptions="End"/>
+                                    </VerticalStackLayout>
+
+                                    <Border Grid.Column="1" Stroke="Transparent" BackgroundColor="Transparent" 
+                                            Padding="5" VerticalOptions="Start" HorizontalOptions="End">
+                                        <Path Data="M14.06,9L15,9.94L5.92,19H5V18.08L14.06,9M17.66,3C17.41,3 17.15,3.1 16.96,3.29L15.13,5.12L18.88,8.87L20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18.17,3.09 17.92,3 17.66,3M14.06,6.19L3,17.25V21H6.75L17.81,9.94L14.06,6.19Z" 
+                                              Fill="Black" Aspect="Uniform" HeightRequest="18" WidthRequest="18"/>
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer Command="{Binding Source={x:Reference TheMindPage}, Path=BindingContext.EditItemCommand}" 
+                                                                  CommandParameter="{Binding .}"/>
+                                        </Border.GestureRecognizers>
+                                    </Border>
+                                </Grid>
                             </Frame>
                         </SwipeView>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
 
-            <Button Grid.Row="1" Text="+" Command="{Binding AddItemCommand}"
-                    FontSize="30" TextColor="White" BackgroundColor="{AppThemeBinding Light=Black, Dark=#52D1DC}"
-                    WidthRequest="60" HeightRequest="60" CornerRadius="30"
-                    HorizontalOptions="End" VerticalOptions="End" Margin="10"/>
+            <Button Grid.Row="1" Text="+" Command="{Binding AddItemCommand}" 
+                    BackgroundColor="{AppThemeBinding Light=Black, Dark=#52D1DC}" 
+                    TextColor="White" WidthRequest="60" HeightRequest="60" CornerRadius="30" 
+                    HorizontalOptions="End" VerticalOptions="End" Margin="10">
+                <Button.Shadow>
+                    <Shadow Brush="Black" Offset="2,2" Opacity="0.3"/>
+                </Button.Shadow>
+            </Button>
         </Grid>
 
         <Grid BackgroundColor="#99000000" IsVisible="{Binding IsPopupVisible}" ZIndex="999">
-            <Frame VerticalOptions="Center" HorizontalOptions="Center" WidthRequest="320" CornerRadius="20" Padding="20" BackgroundColor="{AppThemeBinding Light=White, Dark=#252525}">
+            <Frame VerticalOptions="Center" HorizontalOptions="Center" WidthRequest="340" CornerRadius="20" Padding="25" 
+                   BackgroundColor="{AppThemeBinding Light=White, Dark=#252525}">
                 <VerticalStackLayout Spacing="15">
-                    <Label Text="Not Ekle" FontSize="20" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
+                    <Label Text="Note Details" FontSize="20" FontAttributes="Bold" HorizontalOptions="Center" 
+                           TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
                     
-                    <Entry Placeholder="Başlık..." Text="{Binding PopupTitle}" FontSize="16" FontAttributes="Bold"/>
-                    <Editor Placeholder="Ne düşünüyorsun?" Text="{Binding PopupContent}" HeightRequest="150" AutoSize="TextChanges"/>
+                    <Entry Placeholder="Title" Text="{Binding PopupTitle}" TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
+                    <Editor Placeholder="Content" Text="{Binding PopupContent}" HeightRequest="100" 
+                            TextColor="{AppThemeBinding Light=Black, Dark=White}" AutoSize="TextChanges"/>
 
-                    <Grid ColumnDefinitions="*, *" ColumnSpacing="10">
-                        <Button Text="İptal" Command="{Binding ClosePopupCommand}" BackgroundColor="#EEE" TextColor="Black" Grid.Column="0"/>
-                        <Button Text="Kaydet" Command="{Binding SaveItemCommand}" BackgroundColor="{AppThemeBinding Light=Black, Dark=#52D1DC}" TextColor="{AppThemeBinding Light=White, Dark=Black}" Grid.Column="1"/>
+                    <Label Text="Pick a color:" FontSize="13" TextColor="Gray"/>
+                    <FlexLayout BindableLayout.ItemsSource="{Binding ColorOptions}" JustifyContent="SpaceBetween" Margin="0,5">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate>
+                                <Border StrokeShape="RoundRectangle 18" HeightRequest="36" WidthRequest="36" 
+                                        BackgroundColor="{Binding .}" Stroke="Silver" StrokeThickness="1">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding Source={x:Reference TheMindPage}, Path=BindingContext.SelectColorCommand}" 
+                                                              CommandParameter="{Binding .}"/>
+                                    </Border.GestureRecognizers>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </FlexLayout>
+
+                    <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
+                        <Label Text="Selected:" VerticalOptions="Center" FontSize="12" TextColor="Gray"/>
+                        <Border StrokeShape="RoundRectangle 10" HeightRequest="20" WidthRequest="20" 
+                                BackgroundColor="{Binding SelectedColor}" Stroke="Silver" StrokeThickness="1"/>
+                    </HorizontalStackLayout>
+
+                    <Grid ColumnDefinitions="*, *" ColumnSpacing="15">
+                        <Button Text="Cancel" Command="{Binding ClosePopupCommand}" BackgroundColor="#EEE" TextColor="Black" CornerRadius="10"/>
+                        <Button Text="Save" Command="{Binding SaveItemCommand}" 
+                                BackgroundColor="{AppThemeBinding Light=Black, Dark=#52D1DC}" 
+                                TextColor="{AppThemeBinding Light=White, Dark=Black}" CornerRadius="10" FontAttributes="Bold"/>
                     </Grid>
                 </VerticalStackLayout>
             </Frame>
