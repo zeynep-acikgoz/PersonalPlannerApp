@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using PersonalPlannerApp.ViewModels;
 
 namespace PersonalPlannerApp.Views;
 
 public partial class MindPage : ContentPage
 {
-    public MindPage()
+    public MindPage(MindViewModel viewModel)
     {
         InitializeComponent();
+        BindingContext = viewModel;
     }
 }
