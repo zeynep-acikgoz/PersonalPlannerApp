@@ -7,60 +7,29 @@ namespace PersonalPlannerApp.ViewModels;
 public class MindViewModel : BindableObject
 {
     private readonly LocalDbService _dbService;
-
-    
     private ObservableCollection<MindItem> _mindItems;
+    private bool _isDescending = true;
+    private bool _isPopupVisible;
+    private string _popupTitle;
+    private string _popupContent;
+    private string _selectedColor;
+    private MindItem _editingItem;
+
     public ObservableCollection<MindItem> MindItems
     {
         get => _mindItems;
-        set { _mindItems = value; OnPropertyChanged(); }
+        set { _mindItems = value; OnPropertyChanged(); OnPropertyChanged(nameof(IsListEmpty)); }
     }
 
-    private bool _isDescending = true;
+    public bool IsListEmpty => MindItems == null || MindItems.Count == 0;
     public string SortText => _isDescending ? "Newest First" : "Oldest First";
+    public bool IsPopupVisible { get => _isPopupVisible; set { _isPopupVisible = value; OnPropertyChanged(); } }
+    public string PopupTitle { get => _popupTitle; set { _popupTitle = value; OnPropertyChanged(); } }
+    public string PopupContent { get => _popupContent; set { _popupContent = value; OnPropertyChanged(); } }
+    public string SelectedColor { get => _selectedColor; set { _selectedColor = value; OnPropertyChanged(); } }
 
-    
-    private bool _isPopupVisible;
-    public bool IsPopupVisible
-    {
-        get => _isPopupVisible;
-        set { _isPopupVisible = value; OnPropertyChanged(); }
-    }
+    public List<string> ColorOptions { get; } = new List<string> { "#D1E9F6", "#F6EACB", "#F1D3CE", "#E2F1E7", "#E0E0E0" };
 
-    private string _popupTitle;
-    public string PopupTitle
-    {
-        get => _popupTitle;
-        set { _popupTitle = value; OnPropertyChanged(); }
-    }
-
-    private string _popupContent;
-    public string PopupContent
-    {
-        get => _popupContent;
-        set { _popupContent = value; OnPropertyChanged(); }
-    }
-
-    private string _selectedColor;
-    public string SelectedColor
-    {
-        get => _selectedColor;
-        set { _selectedColor = value; OnPropertyChanged(); }
-    }
-
-   
-    public List<string> ColorOptions { get; } = new List<string>
-    {
-        "#D1E9F6", // Soft Mavi
-        "#F6EACB", // Soft Sarı
-        "#F1D3CE", // Soft Kırmızı
-        "#E2F1E7", // Soft Yeşil
-        "#E0E0E0"  // Soft Gri 
-    };
-
-    private MindItem _editingItem;
-
-    //--------------------
     public ICommand AddItemCommand { get; }
     public ICommand DeleteItemCommand { get; }
     public ICommand EditItemCommand { get; }
@@ -74,101 +43,59 @@ public class MindViewModel : BindableObject
         _dbService = dbService;
         MindItems = new ObservableCollection<MindItem>();
 
-        AddItemCommand = new Command(() =>
-        {
+        AddItemCommand = new Command(() => {
             _editingItem = null;
-            PopupTitle = "";
-            PopupContent = "";
-            SelectedColor = "#E0E0E0"; // Başlangıçta gri
+            PopupTitle = string.Empty;
+            PopupContent = string.Empty;
+            SelectedColor = "#E0E0E0";
             IsPopupVisible = true;
         });
 
         SelectColorCommand = new Command<string>((color) => SelectedColor = color);
 
-        SaveItemCommand = new Command(async () =>
-        {
-            if (string.IsNullOrWhiteSpace(PopupTitle) && string.IsNullOrWhiteSpace(PopupContent))
-            {
-                await Shell.Current.DisplayAlert("Warning", "Cannot save an empty note.", "OK");
-                return;
+        SaveItemCommand = new Command(async () => {
+            if (string.IsNullOrWhiteSpace(PopupTitle) && string.IsNullOrWhiteSpace(PopupContent)) return;
+            if (_editingItem == null) {
+                await _dbService.SaveMindItemAsync(new MindItem { 
+                    Title = PopupTitle, Content = PopupContent, CreatedDate = DateTime.Now, ColorCode = SelectedColor 
+                });
+            } else {
+                _editingItem.Title = PopupTitle; _editingItem.Content = PopupContent; _editingItem.ColorCode = SelectedColor;
+                await _dbService.SaveMindItemAsync(_editingItem);
             }
-
-            try
-            {
-                if (_editingItem == null)
-                {
-                    var newItem = new MindItem
-                    {
-                        Title = PopupTitle,
-                        Content = PopupContent,
-                        CreatedDate = DateTime.Now,
-                        ColorCode = SelectedColor
-                    };
-                    await _dbService.SaveMindItemAsync(newItem);
-                }
-                else
-                {
-                    _editingItem.Title = PopupTitle;
-                    _editingItem.Content = PopupContent;
-                    _editingItem.ColorCode = SelectedColor;
-                    await _dbService.SaveMindItemAsync(_editingItem);
-                }
-
-                IsPopupVisible = false;
-                await LoadItems();
-            }
-            catch (Exception ex)
-            {
-                await Shell.Current.DisplayAlert("Error", "Save failed: " + ex.Message, "Close");
-            }
+            IsPopupVisible = false;
+            await LoadItems();
         });
 
-        DeleteItemCommand = new Command<MindItem>(async (item) =>
-        {
-            bool answer = await Shell.Current.DisplayAlert("Delete", "Are you sure you want to delete this?", "Yes", "No");
-            if (answer)
-            {
+        // CANCEL MANTIĞI: Popup'ı kapat ve edit nesnesini temizle
+        ClosePopupCommand = new Command(() => { 
+            IsPopupVisible = false; 
+            _editingItem = null; 
+        });
+
+        DeleteItemCommand = new Command<MindItem>(async (item) => {
+            if (await Shell.Current.DisplayAlert("Delete", "Delete this note?", "Yes", "No")) {
                 await _dbService.DeleteMindItemAsync(item);
                 await LoadItems();
             }
         });
 
-        EditItemCommand = new Command<MindItem>((item) =>
-        {
-            _editingItem = item;
-            PopupTitle = item.Title;
-            PopupContent = item.Content;
-            SelectedColor = item.ColorCode;
-            IsPopupVisible = true;
+        EditItemCommand = new Command<MindItem>((item) => {
+            _editingItem = item; PopupTitle = item.Title; PopupContent = item.Content;
+            SelectedColor = item.ColorCode; IsPopupVisible = true;
         });
 
-        ClosePopupCommand = new Command(() => IsPopupVisible = false);
-
-        ToggleSortCommand = new Command(async () =>
-        {
-            _isDescending = !_isDescending;
-            OnPropertyChanged(nameof(SortText));
-            await LoadItems();
+        ToggleSortCommand = new Command(async () => {
+            _isDescending = !_isDescending; OnPropertyChanged(nameof(SortText)); await LoadItems();
         });
 
-        
         _ = LoadItems();
     }
 
-   
     private async Task LoadItems()
     {
         var items = await _dbService.GetMindItemsAsync();
-        
-        IEnumerable<MindItem> sorted;
-        if (_isDescending)
-            sorted = items.OrderByDescending(x => x.CreatedDate);
-        else
-            sorted = items.OrderBy(x => x.CreatedDate);
-
-        MainThread.BeginInvokeOnMainThread(() =>
-        {
-            MindItems = new ObservableCollection<MindItem>(sorted);
-        });
+        var sorted = _isDescending ? items.OrderByDescending(x => x.CreatedDate) : items.OrderBy(x => x.CreatedDate);
+        MainThread.BeginInvokeOnMainThread(() => { MindItems = new ObservableCollection<MindItem>(sorted); });
     }
 }
