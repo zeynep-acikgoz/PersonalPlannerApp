@@ -26,7 +26,7 @@
                     <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="10" Margin="0,100,0,0">
                         <Label Text="🧠" FontSize="60" HorizontalOptions="Center"/>
                         <Label Text="No thoughts yet?" FontSize="18" FontAttributes="Bold" TextColor="Gray" HorizontalOptions="Center"/>
-                        <Label Text="Tap '+' to capture your first idea!" FontSize="14" TextColor="Silver" HorizontalOptions="Center"/>
+                        <Label Text="Click '+' to capture your first idea!" FontSize="14" TextColor="Silver" HorizontalOptions="Center"/>
                     </VerticalStackLayout>
                 </CollectionView.EmptyView>
 
