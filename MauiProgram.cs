@@ -21,20 +21,20 @@ public static class MauiProgram
         builder.Logging.AddDebug();
 #endif
         
-        // 1. Veritabanı Servisi
+       
         builder.Services.AddSingleton<LocalDbService>();
 
-        // 2. ViewModels (Tek Seferlik Tanımlar)
+    
         builder.Services.AddSingleton<ToDoViewModel>();
         builder.Services.AddSingleton<PlannerViewModel>();
-        builder.Services.AddSingleton<MindViewModel>(); // Mind Eklendi
-
-        // 3. Pages (Sayfalar)
-        // Eğer HomePage ve AssistantPage varsa onları da buraya eklemelisin.
+        builder.Services.AddSingleton<MindViewModel>(); 
+        
+        builder.Services.AddTransient<AssistantPage>();
+        builder.Services.AddTransient<AssistantViewModel>();
         builder.Services.AddSingleton<HomePage>(); 
         builder.Services.AddSingleton<ToDoPage>();
         builder.Services.AddSingleton<PlanPage>();
-        builder.Services.AddSingleton<MindPage>(); // Mind Eklendi
+        builder.Services.AddSingleton<MindPage>(); 
         builder.Services.AddSingleton<AssistantPage>();
 
         return builder.Build();

@@ -1,15 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using PersonalPlannerApp.ViewModels;
 
 namespace PersonalPlannerApp.Views;
 
 public partial class AssistantPage : ContentPage
 {
-    public AssistantPage()
+    
+    public AssistantPage(AssistantViewModel viewModel)
     {
         InitializeComponent();
+        
+        BindingContext = viewModel;
     }
 }
