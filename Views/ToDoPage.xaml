@@ -8,178 +8,68 @@
              BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#121212}">
 
     <Grid>
-
         <Grid RowDefinitions="Auto, *" Padding="20" RowSpacing="15">
+            <Label Text="My Tasks" FontSize="30" FontAttributes="Bold" TextColor="{AppThemeBinding Light=Black, Dark=White}" Grid.Row="0" />
 
-            <Label Text="My Tasks"
-                   FontSize="30"
-                   FontAttributes="Bold"
-                   TextColor="{AppThemeBinding Light=Black, Dark=White}"
-                   Grid.Row="0" />
-
-            <CollectionView Grid.Row="1" 
-                            ItemsSource="{Binding GroupedTasks}"
-                            IsGrouped="True"
-                            SelectionMode="None"> 
-                
-                <CollectionView.ItemsLayout>
-                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="10" />
-                </CollectionView.ItemsLayout>
-
-                <CollectionView.EmptyView>
-                    <ContentView>
-                        <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="20" Margin="0,50,0,0">
-                            <Label Text="🤖" FontSize="80" HorizontalOptions="Center" />
-                            <Label Text="There is nothing to do." FontSize="18" TextColor="Gray" FontAttributes="Bold" HorizontalOptions="Center" />
-                            <Label Text="Enjoy the moment or add a new to-do." FontSize="16" TextColor="Gray" HorizontalOptions="Center" />
-                        </VerticalStackLayout>
-                    </ContentView>
-                </CollectionView.EmptyView>
-
+            <CollectionView Grid.Row="1" ItemsSource="{Binding GroupedTasks}" IsGrouped="True" SelectionMode="None"> 
+                <CollectionView.ItemsLayout><LinearItemsLayout Orientation="Vertical" ItemSpacing="10" /></CollectionView.ItemsLayout>
                 <CollectionView.GroupHeaderTemplate>
                     <DataTemplate>
                         <Grid Padding="0,15,0,5" ColumnDefinitions="*, Auto">
-                            <Label Text="{Binding DisplayName}" FontSize="18" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#333, Dark=#ccc}" VerticalOptions="Center" Grid.Column="0"/>
-                            <Label Text="{Binding StateIcon}" FontSize="18" TextColor="Gray" VerticalOptions="Center" Grid.Column="1" Margin="0,0,10,0"/>
-                             <Grid.GestureRecognizers>
-                                <TapGestureRecognizer 
-                                    Command="{Binding Source={x:Reference TheToDoPage}, Path=BindingContext.ToggleGroupCommand}"
-                                    CommandParameter="{Binding .}" />
-                            </Grid.GestureRecognizers>
+                            <Label Text="{Binding DisplayName}" FontSize="18" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#333, Dark=#ccc}" Grid.Column="0"/>
+                            <Label Text="{Binding StateIcon}" FontSize="18" TextColor="Gray" Grid.Column="1"/>
+                            <Grid.GestureRecognizers><TapGestureRecognizer Command="{Binding Source={x:Reference TheToDoPage}, Path=BindingContext.ToggleGroupCommand}" CommandParameter="{Binding .}" /></Grid.GestureRecognizers>
                         </Grid>
                     </DataTemplate>
                 </CollectionView.GroupHeaderTemplate>
-
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
                         <SwipeView>
-                            <SwipeView.RightItems>
-                                <SwipeItems Mode="Reveal">
-                                    <SwipeItem Text="Delete" BackgroundColor="#FF3B30" 
-                                               Command="{Binding Source={x:Reference TheToDoPage}, Path=BindingContext.DeleteTaskCommand}"
-                                               CommandParameter="{Binding .}"/>
-                                </SwipeItems>
-                            </SwipeView.RightItems>
-
-                            <Grid BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#121212}"> 
-                                <Frame CornerRadius="12" Padding="10" BorderColor="Transparent" 
-                                       BackgroundColor="{AppThemeBinding Light=White, Dark=#1E1E1E}" Margin="0,0,0,0">
-                                    
-                                    <Grid ColumnDefinitions="5, *, Auto, Auto, Auto" ColumnSpacing="10">
-                                        
-                                        <BoxView Color="{Binding CategoryColor}" WidthRequest="5" CornerRadius="2" VerticalOptions="Fill" Grid.Column="0"/>
-                                        
-                                        <StackLayout Grid.Column="1" VerticalOptions="Center">
-                                            <Label Text="{Binding Title}" FontSize="16" TextColor="{AppThemeBinding Light=Black, Dark=White}">
-                                                <Label.Triggers>
-                                                    <DataTrigger TargetType="Label" Binding="{Binding IsCompleted}" Value="True">
-                                                        <Setter Property="TextDecorations" Value="Strikethrough" />
-                                                        <Setter Property="TextColor" Value="Gray" />
-                                                    </DataTrigger>
-                                                </Label.Triggers>
-                                            </Label>
-                                            <Label Text="{Binding DueDate, StringFormat='Due: {0:dd MMM}'}" FontSize="12" TextColor="Gray"/>
-                                        </StackLayout>
-                                        
-                                        <Border Grid.Column="2" Stroke="Transparent" BackgroundColor="Transparent" Padding="5" VerticalOptions="Center">
-                                            <Path Data="M19,4H18V2H16V4H8V2H6V4H5A2,2 0 0,0 3,6V20A2,2 0 0,0 5,22H19A2,2 0 0,0 21,20V6A2,2 0 0,0 19,4M19,20H5V10H19V20M19,8H5V6H19V8Z"
-                                                  Fill="{AppThemeBinding Light=Black, Dark=White}" 
-                                                  Aspect="Uniform" HeightRequest="20" WidthRequest="20"/>
-                                            <Border.GestureRecognizers>
-                                                <TapGestureRecognizer Command="{Binding Source={x:Reference TheToDoPage}, Path=BindingContext.PlanTaskCommand}" CommandParameter="{Binding .}"/>
-                                            </Border.GestureRecognizers>
-                                        </Border>
-
-                                        <Border Grid.Column="3" Stroke="Transparent" BackgroundColor="Transparent" Padding="5" VerticalOptions="Center">
-                                            <Path Data="M14.06,9L15,9.94L5.92,19H5V18.08L14.06,9M17.66,3C17.41,3 17.15,3.1 16.96,3.29L15.13,5.12L18.88,8.87L20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18.17,3.09 17.92,3 17.66,3M14.06,6.19L3,17.25V21H6.75L17.81,9.94L14.06,6.19Z"
-                                                  Fill="{AppThemeBinding Light=Black, Dark=White}" 
-                                                  Aspect="Uniform" HeightRequest="18" WidthRequest="18"/>
-                                            <Border.GestureRecognizers>
-                                                <TapGestureRecognizer Command="{Binding Source={x:Reference TheToDoPage}, Path=BindingContext.EditTaskCommand}" CommandParameter="{Binding .}"/>
-                                            </Border.GestureRecognizers>
-                                        </Border>
-
-                                        <CheckBox IsChecked="{Binding IsCompleted}" Grid.Column="4" 
-                                                  Color="{AppThemeBinding Light=Black, Dark=White}" />
-                                    </Grid>
-                                </Frame>
-                            </Grid>
+                            <SwipeView.RightItems><SwipeItems Mode="Reveal"><SwipeItem Text="Delete" BackgroundColor="#FF3B30" Command="{Binding Source={x:Reference TheToDoPage}, Path=BindingContext.DeleteTaskCommand}" CommandParameter="{Binding .}"/></SwipeItems></SwipeView.RightItems>
+                            <Frame CornerRadius="12" Padding="10" BorderColor="Transparent" BackgroundColor="{AppThemeBinding Light=White, Dark=#1E1E1E}">
+                                <Grid ColumnDefinitions="5, *, Auto, Auto, Auto" ColumnSpacing="10">
+                                    <BoxView Color="{Binding CategoryColor}" WidthRequest="5" CornerRadius="2" Grid.Column="0"/>
+                                    <StackLayout Grid.Column="1" VerticalOptions="Center">
+                                        <Label Text="{Binding Title}" FontSize="16" TextColor="{AppThemeBinding Light=Black, Dark=White}">
+                                            <Label.Triggers><DataTrigger TargetType="Label" Binding="{Binding IsCompleted}" Value="True"><Setter Property="TextDecorations" Value="Strikethrough" /><Setter Property="TextColor" Value="Gray" /></DataTrigger></Label.Triggers>
+                                        </Label>
+                                        <Label Text="{Binding DueDate, StringFormat='Due: {0:dd MMM}'}" FontSize="12" TextColor="Gray"/>
+                                    </StackLayout>
+                                    <Border Grid.Column="2" Stroke="Transparent" BackgroundColor="Transparent" Padding="5" VerticalOptions="Center">
+                                        <Path Data="M19,4H18V2H16V4H8V2H6V4H5A2,2 0 0,0 3,6V20A2,2 0 0,0 5,22H19A2,2 0 0,0 21,20V6A2,2 0 0,0 19,4M19,20H5V10H19V20M19,8H5V6H19V8Z" Fill="{AppThemeBinding Light=Black, Dark=White}" Aspect="Uniform" HeightRequest="20" WidthRequest="20"/>
+                                        <Border.GestureRecognizers><TapGestureRecognizer Command="{Binding Source={x:Reference TheToDoPage}, Path=BindingContext.PlanTaskCommand}" CommandParameter="{Binding .}"/></Border.GestureRecognizers>
+                                    </Border>
+                                    <Border Grid.Column="3" Stroke="Transparent" BackgroundColor="Transparent" Padding="5" VerticalOptions="Center">
+                                        <Path Data="M14.06,9L15,9.94L5.92,19H5V18.08L14.06,9M17.66,3C17.41,3 17.15,3.1 16.96,3.29L15.13,5.12L18.88,8.87L20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18.17,3.09 17.92,3 17.66,3M14.06,6.19L3,17.25V21H6.75L17.81,9.94L14.06,6.19Z" Fill="{AppThemeBinding Light=Black, Dark=White}" Aspect="Uniform" HeightRequest="18" WidthRequest="18"/>
+                                        <Border.GestureRecognizers><TapGestureRecognizer Command="{Binding Source={x:Reference TheToDoPage}, Path=BindingContext.EditTaskCommand}" CommandParameter="{Binding .}"/></Border.GestureRecognizers>
+                                    </Border>
+                                    <CheckBox IsChecked="{Binding IsCompleted}" Grid.Column="4" Color="{AppThemeBinding Light=Black, Dark=White}" />
+                                </Grid>
+                            </Frame>
                         </SwipeView>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
 
-            <Button Grid.Row="1" Text="+" 
-                    Command="{Binding OpenAddPopupCommand}"
-                    FontSize="30" TextColor="White"
-                    BackgroundColor="{AppThemeBinding Light=Black, Dark=#52D1DC}"
-                    WidthRequest="60" HeightRequest="60" CornerRadius="30"
-                    HorizontalOptions="End" VerticalOptions="End"
-                    Margin="10">
-                <Button.Shadow>
-                    <Shadow Brush="Black" Offset="2,2" Opacity="0.5"/>
-                </Button.Shadow>
-            </Button>
+            <Border Grid.Row="1" HeightRequest="60" WidthRequest="60" StrokeShape="RoundRectangle 30" HorizontalOptions="End" VerticalOptions="End" Margin="10" BackgroundColor="{AppThemeBinding Light=Black, Dark=White}" StrokeThickness="0">
+                <Border.GestureRecognizers><TapGestureRecognizer Command="{Binding OpenAddPopupCommand}" /></Border.GestureRecognizers>
+                <Label Text="+" FontSize="32" FontAttributes="Bold" HorizontalOptions="Center" VerticalOptions="Center" TextColor="{AppThemeBinding Light=White, Dark=Black}" />
+                <Border.Shadow><Shadow Brush="Black" Offset="2,2" Opacity="0.5"/></Border.Shadow>
+            </Border>
         </Grid>
 
-        <Grid BackgroundColor="#CC000000"
-              IsVisible="{Binding IsPopupVisible}"
-              ZIndex="999">
-            
-            <Grid.GestureRecognizers>
-                <TapGestureRecognizer Command="{Binding ClosePopupCommand}"/>
-            </Grid.GestureRecognizers>
-
-            <Frame VerticalOptions="Center" HorizontalOptions="Center"
-                   WidthRequest="340" CornerRadius="20" Padding="25"
-                   BackgroundColor="{AppThemeBinding Light=White, Dark=#252525}">
-                
-                <Frame.GestureRecognizers>
-                    <TapGestureRecognizer />
-                </Frame.GestureRecognizers>
-
+        <Grid BackgroundColor="#CC000000" IsVisible="{Binding IsPopupVisible}" ZIndex="999">
+            <Grid.GestureRecognizers><TapGestureRecognizer Command="{Binding ClosePopupCommand}"/></Grid.GestureRecognizers>
+            <Frame VerticalOptions="Center" HorizontalOptions="Center" WidthRequest="340" CornerRadius="20" Padding="25" BackgroundColor="{AppThemeBinding Light=White, Dark=#252525}">
                 <VerticalStackLayout Spacing="15">
-                    
                     <Label Text="{Binding PopupTitleText}" FontSize="22" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
-
-                    <Entry Placeholder="I need to..." Text="{Binding PopupEntryText}" 
-                           FontSize="16" BackgroundColor="Transparent"/>
-                    
-                    <Grid ColumnDefinitions="*, *" ColumnSpacing="10">
-                        <Frame Grid.Column="0" Padding="10" CornerRadius="8" BackgroundColor="{Binding CategoryButtonColor}" BorderColor="Transparent">
-                            <Label Text="{Binding SelectedCategory}" TextColor="White" FontAttributes="Bold" HorizontalOptions="Center"/>
-                            <Frame.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding CycleCategoryCommand}"/>
-                            </Frame.GestureRecognizers>
-                        </Frame>
-
-                        <Frame Grid.Column="1" Padding="10" CornerRadius="8" BackgroundColor="{Binding PriorityButtonColor}" BorderColor="Transparent">
-                            <Label Text="{Binding SelectedPriority}" TextColor="White" FontAttributes="Bold" HorizontalOptions="Center"/>
-                            <Frame.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding CyclePriorityCommand}"/>
-                            </Frame.GestureRecognizers>
-                        </Frame>
+                    <Entry Placeholder="I need to..." Text="{Binding PopupEntryText}" FontSize="16" BackgroundColor="Transparent"/>
+                    <Grid ColumnDefinitions="*, *" ColumnSpacing="15">
+                        <Button Text="Cancel" Command="{Binding ClosePopupCommand}" BackgroundColor="#EEEEEE" TextColor="Black"/>
+                        <Button Text="Save" Command="{Binding SaveTaskCommand}" BackgroundColor="{AppThemeBinding Light=Black, Dark=#52D1DC}" TextColor="{AppThemeBinding Light=White, Dark=Black}"/>
                     </Grid>
-
-                    <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
-                        <Label Text="Deadline" VerticalOptions="Center" TextColor="Gray"/>
-                        <CheckBox IsChecked="{Binding HasDueDate}" Color="{AppThemeBinding Light=Black, Dark=White}"/>
-                        <DatePicker Date="{Binding SelectedDate}" IsVisible="{Binding HasDueDate}" TextColor="{AppThemeBinding Light=Black, Dark=White}"/>
-                    </HorizontalStackLayout>
-
-                    <Grid ColumnDefinitions="*, *" ColumnSpacing="15" Margin="0,10,0,0">
-                        <Button Text="Cancel" Command="{Binding ClosePopupCommand}"
-                                BackgroundColor="#EEEEEE" TextColor="Black" Grid.Column="0" CornerRadius="12" HeightRequest="50"/>
-                        
-                        <Button Text="Save" Command="{Binding SaveTaskCommand}"
-                                BackgroundColor="{AppThemeBinding Light=Black, Dark=#52D1DC}" 
-                                TextColor="{AppThemeBinding Light=White, Dark=Black}" 
-                                Grid.Column="1" CornerRadius="12" HeightRequest="50" FontAttributes="Bold"/>
-                    </Grid>
-
                 </VerticalStackLayout>
             </Frame>
         </Grid>
-
     </Grid>
 </ContentPage>

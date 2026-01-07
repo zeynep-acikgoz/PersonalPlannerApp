@@ -36,6 +36,10 @@ public static class MauiProgram
         builder.Services.AddSingleton<PlanPage>();
         builder.Services.AddSingleton<MindPage>(); 
         builder.Services.AddSingleton<AssistantPage>();
+        
+
+        builder.Services.AddSingleton<HomePage>();
+        builder.Services.AddSingleton<HomePageViewModel>();
 
         return builder.Build();
     }

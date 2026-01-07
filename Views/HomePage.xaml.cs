@@ -1,75 +1,17 @@
-﻿using System;
-using System.Globalization;
-using Microsoft.Maui.Controls;
-using Microsoft.Maui.ApplicationModel; 
+﻿using PersonalPlannerApp.ViewModels;
 
 namespace PersonalPlannerApp.Views;
 
 public partial class HomePage : ContentPage
 {
-    public HomePage()
+    public HomePage(HomePageViewModel viewModel)
     {
         InitializeComponent();
-        
-        UpdateDate();
-        UpdateGreeting();
-        CheckBriefVisibility();
-        
-        
-        if (Application.Current.RequestedTheme == AppTheme.Dark)
-        {
-            ThemeSwitch.IsToggled = true;
-        }
+        BindingContext = viewModel;
     }
 
     private void OnThemeSwitchToggled(object sender, ToggledEventArgs e)
     {
-        bool isDarkMode = e.Value;
-
-        if (isDarkMode)
-        {
-            Application.Current.UserAppTheme = AppTheme.Dark;
-        }
-        else
-        {
-            Application.Current.UserAppTheme = AppTheme.Light;
-        }
-    }
-
-    private void OnTimeChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName == "Time")
-        {
-            CheckBriefVisibility();
-        }
-    }
-
-    private void CheckBriefVisibility()
-    {
-        TimeSpan currentTime = DateTime.Now.TimeOfDay;
-        TimeSpan eveningThreshold = PickerEvening.Time;
-
-        if (currentTime >= eveningThreshold)
-            FrameEvening.IsVisible = true;
-        else
-            FrameEvening.IsVisible = false;
-    }
-
-    private void UpdateGreeting()
-    {
-        var currentHour = DateTime.Now.Hour;
-        string greetingText = "";
-
-        if (currentHour >= 5 && currentHour < 12) greetingText = "Good morning";
-        else if (currentHour >= 12 && currentHour < 17) greetingText = "Good afternoon";
-        else if (currentHour >= 17 && currentHour < 21) greetingText = "Good evening";
-        else greetingText = "Good night";
-
-        LblGreeting.Text = greetingText;
-    }
-
-    private void UpdateDate()
-    {
-        LblDate.Text = DateTime.Now.ToString("d MMMM dddd", CultureInfo.GetCultureInfo("en-US"));
+        Application.Current.UserAppTheme = e.Value ? AppTheme.Dark : AppTheme.Light;
     }
 }
